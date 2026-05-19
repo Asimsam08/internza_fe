@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Trophy, Lock, Unlock, Sparkles, CheckCircle2, Clock, AlertCircle } from "lucide-react"
+import { Trophy, Lock, Sparkles, CheckCircle2, Clock, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { DurationProgress } from "@/lib/types"
 

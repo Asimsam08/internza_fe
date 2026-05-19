@@ -74,7 +74,7 @@ export function ProjectBlockList({ blocks, onBlockClick, className }: ProjectBlo
       </div>
 
       <div className="space-y-3">
-        {blocksWithWeeks.map((block, index) => {
+        {blocksWithWeeks.map((block) => {
           const config = getStatusConfig(block.status)
           const isClickable = block.status === "available" || block.status === "in_progress"
 

@@ -19,6 +19,7 @@ interface AuthState {
   isSuperAdmin: () => boolean
   isReviewer: () => boolean
   isStudent: () => boolean
+  isCollegeAdmin: () => boolean
   canReviewSubmissions: () => boolean
   canIssueCertificate: () => boolean
 }
@@ -166,6 +167,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   isSuperAdmin: () => get().userRole === "super_admin",
   isReviewer: () => get().userRole === "reviewer",
   isStudent: () => get().userRole === "student",
+  isCollegeAdmin: () => get().userRole === "college_admin",
 
   canReviewSubmissions: () => get().permissions.includes("review_submissions"),
   canIssueCertificate: () => get().permissions.includes("issue_certificate"),

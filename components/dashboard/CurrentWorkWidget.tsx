@@ -1,27 +1,63 @@
 "use client"
 
 import * as React from "react"
-import { Briefcase, Flag, CheckCircle2, ArrowRight, ChevronRight, Sparkles } from "lucide-react"
+import { Briefcase, Flag, CheckCircle2, ArrowRight, Sparkles, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { DurationProgress, ProjectBlock } from "@/lib/types"
+import { getStudentProgressPercent, type StudentDashboard } from "@/lib/hooks/use-student"
+import {
+  formatCohortPlanContext,
+  getCurrentProjectSectionLabel,
+  getDashboardCohort,
+} from "@/lib/cohort-labels"
 
 interface CurrentWorkWidgetProps {
-  progress: DurationProgress | null
-  activePlan: string | null
+  dashboard: StudentDashboard | null
+  isLoading?: boolean
   onGoToMilestones: () => void
   className?: string
 }
 
 export function CurrentWorkWidget({
-  progress,
-  activePlan,
+  dashboard,
+  isLoading = false,
   onGoToMilestones,
   className,
 }: CurrentWorkWidgetProps) {
-  if (!progress || !activePlan) {
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Don't render anything until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <Card className={cn("border-secondary-200 bg-gradient-to-br from-primary/5 to-accent/5", className)}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <Card className={cn("border-secondary-200 bg-gradient-to-br from-primary/5 to-accent/5", className)}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!dashboard || dashboard.planStatus !== 'ACTIVE') {
     return (
       <Card className={cn("border-secondary-200 bg-gradient-to-br from-primary/5 to-accent/5", className)}>
         <CardContent className="p-4">
@@ -47,8 +83,16 @@ export function CurrentWorkWidget({
     )
   }
 
-  const currentBlock = progress.currentBlock
-  const nextBlock = progress.nextBlock
+  const { activeProject, taskTimeline } = dashboard
+  const cohort = getDashboardCohort(dashboard)
+  const progressPercent = getStudentProgressPercent(dashboard)
+  const isComplete = progressPercent === 100
+  const projectSectionLabel = getCurrentProjectSectionLabel(dashboard)
+  
+  // Filter tasks to only include active project tasks for optimized display
+  const activeProjectTasks = taskTimeline?.filter(task => task.projectId === activeProject.id) ?? []
+  const totalTasks = activeProjectTasks.length
+  const activeProjectCompletedTasks = activeProjectTasks.filter(task => task.status === 'APPROVED').length
 
   return (
     <Card className={cn("border-secondary-200 bg-gradient-to-br from-primary/5 to-accent/5", className)}>
@@ -60,7 +104,7 @@ export function CurrentWorkWidget({
               <Sparkles className="h-4 w-4" />
               <span>Current Work</span>
             </div>
-            {progress.canUnlockCertificate && (
+            {isComplete && (
               <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
                 <CheckCircle2 className="h-3 w-3" />
                 Complete
@@ -71,73 +115,56 @@ export function CurrentWorkWidget({
           {/* Plan Info */}
           <div className="space-y-2">
             <div className="text-xs font-medium text-secondary-500 uppercase tracking-wider">
-              {progress.totalWeeks}-Week Plan
+              {formatCohortPlanContext(dashboard)}
             </div>
             <div className="text-sm font-semibold text-secondary-900">
-              {currentBlock?.projectTitle || "No active project"}
+              {activeProject?.title || "No active project"}
             </div>
+            {cohort?.weekLabel ? (
+              <p className="text-[10px] text-secondary-500">{cohort.weekLabel}</p>
+            ) : null}
           </div>
 
           {/* Progress Bar */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-secondary-600">Progress</span>
-              <span className="font-semibold text-primary">{progress.percentage}%</span>
+              <span className="text-secondary-600">Overall Progress</span>
+              <span className="font-semibold text-primary">{progressPercent}%</span>
             </div>
-            <Progress value={progress.percentage} variant="brand" className="h-2" />
+            <Progress value={progressPercent} variant="brand" className="h-2" />
+            <div className="text-[10px] text-secondary-500">
+              {activeProjectCompletedTasks} of {totalTasks} tasks completed
+            </div>
           </div>
 
-          {/* Current Block */}
-          {currentBlock && (
+          {/* Current Project */}
+          {activeProject && (
             <div className="space-y-2">
               <div className="flex items-center gap-1.5 text-xs font-medium text-secondary-500 uppercase tracking-wider">
                 <Flag className="h-3 w-3" />
-                Current Block
+                {projectSectionLabel}
               </div>
               <div className="rounded-lg border border-primary/20 bg-white p-2.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-semibold text-secondary-900 line-clamp-1">
-                      {currentBlock.projectTitle}
+                      {activeProject.title}
                     </div>
                     <div className="text-[10px] text-secondary-500 mt-0.5">
-                      {currentBlock.duration} weeks • Block {currentBlock.order}
+                      {cohort
+                        ? `${activeProject.category} · Cohort`
+                        : `${activeProject.duration} weeks · ${activeProject.category}`}
                     </div>
                   </div>
                   <div className={cn(
                     "flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold",
-                    currentBlock.status === "in_progress" ? "bg-primary text-white" :
-                    currentBlock.status === "completed" ? "bg-emerald-100 text-emerald-700" :
+                    activeProject.status === 'AVAILABLE' || activeProject.status === 'IN_PROGRESS' ? "bg-primary text-white" :
+                    activeProject.isCompleted ? "bg-emerald-100 text-emerald-700" :
                     "bg-secondary-100 text-secondary-500"
                   )}>
-                    {currentBlock.status === "in_progress" ? "→" :
-                     currentBlock.status === "completed" ? "✓" :
-                     currentBlock.order}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Next Block */}
-          {nextBlock && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-secondary-500 uppercase tracking-wider">
-                <ChevronRight className="h-3 w-3" />
-                Next Up
-              </div>
-              <div className="rounded-lg border border-secondary-200 bg-secondary-50 p-2.5 opacity-75">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-secondary-700 line-clamp-1">
-                      {nextBlock.projectTitle}
-                    </div>
-                    <div className="text-[10px] text-secondary-500 mt-0.5">
-                      {nextBlock.duration} weeks • Block {nextBlock.order}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary-200 text-secondary-500 text-[10px] font-bold">
-                    {nextBlock.order}
+                    {activeProject.status === 'AVAILABLE' || activeProject.status === 'IN_PROGRESS' ? "→" :
+                     activeProject.isCompleted ? "✓" :
+                     "?"}
                   </div>
                 </div>
               </div>
@@ -150,7 +177,7 @@ export function CurrentWorkWidget({
             className="w-full"
             onClick={onGoToMilestones}
           >
-            {progress.canUnlockCertificate ? "View Certificate" : "Continue Work"}
+            {isComplete ? "View Certificate" : "Continue Work"}
             <ArrowRight className="h-3.5 w-3.5 ml-1" />
           </Button>
         </div>

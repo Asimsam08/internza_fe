@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  User,
+  User as UserIcon,
   Mail,
   Building2,
   GraduationCap,
@@ -13,7 +13,7 @@ import {
   Camera
 } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useUpdateProfile, useCurrentUser } from "@/lib/hooks/use-auth"
+import { useUpdateProfile, useCurrentUser, type User } from "@/lib/hooks/use-auth"
 import { toast } from "sonner"
 
 export default function SettingsPage() {
@@ -37,14 +37,18 @@ export default function SettingsPage() {
   // Update form data when user data is available
   useEffect(() => {
     if (user && mounted) {
+      const userData = user as User
       setFormData({
-        name: user?.studentProfile
-          ? `${user.studentProfile.firstName} ${user.studentProfile.lastName}`.trim()
-          : user?.name || "",
-        email: user?.email || "",
-        university: user?.studentProfile?.university || "",
-        gradYear: user?.studentProfile?.gradYear?.toString() || "",
-        bio: user?.studentProfile?.bio || "",
+        name: userData?.studentProfile
+          ? `${userData.studentProfile.firstName} ${userData.studentProfile.lastName}`.trim()
+          : "",
+        email: userData?.email || "",
+        university: userData?.studentProfile?.university || "",
+        gradYear: (
+          userData?.studentProfile?.gradYear ??
+          userData?.studentProfile?.graduationYear
+        )?.toString() ?? "",
+        bio: userData?.studentProfile?.bio || "",
       })
     }
   }, [user, mounted])
@@ -61,13 +65,25 @@ export default function SettingsPage() {
       const firstName = nameParts[0] || ''
       const lastName = nameParts.slice(1).join(' ') || ''
 
-      await updateProfile.mutateAsync({
+      const payload: {
+        firstName: string
+        lastName: string
+        university?: string
+        gradYear?: number
+        bio?: string
+      } = {
         firstName,
         lastName,
-        university: formData.university || undefined,
-        gradYear: formData.gradYear ? parseInt(formData.gradYear) : undefined,
-        bio: formData.bio || undefined,
-      })
+      }
+
+      // Only include fields that have values
+      if (formData.university) payload.university = formData.university
+      if (formData.gradYear && formData.gradYear.trim() !== '') {
+        payload.gradYear = parseInt(formData.gradYear)
+      }
+      if (formData.bio) payload.bio = formData.bio
+
+      await updateProfile.mutateAsync(payload)
 
       toast.success("Profile updated successfully")
     } catch (error) {
@@ -88,7 +104,7 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <User className="h-4 w-4" />
+            <UserIcon className="h-4 w-4" />
             Profile Information
           </CardTitle>
           <CardDescription>Update your personal information and how others see you on the platform.</CardDescription>
@@ -117,7 +133,7 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary-400" />
+                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary-400" />
                 <Input 
                   id="name" 
                   value={formData.name}

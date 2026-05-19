@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { api, getErrorMessage } from "@/lib/api-client"
+import { api, getErrorMessage, unwrapApiData } from "@/lib/api-client"
 import { toast } from "sonner"
 
 // Query keys
@@ -47,8 +47,7 @@ export function useUsers() {
   return useQuery({
     queryKey: adminKeys.users(),
     queryFn: async (): Promise<User[]> => {
-      const response: any = await api.get("/admin/users")
-      return response.data || response
+      return unwrapApiData<User[]>(await api.get("/admin/users"))
     },
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -62,8 +61,7 @@ export function useReviewers() {
   return useQuery({
     queryKey: adminKeys.reviewers(),
     queryFn: async (): Promise<User[]> => {
-      const response: any = await api.get("/admin/users?role=reviewer")
-      return response.data || response
+      return unwrapApiData<User[]>(await api.get("/admin/users?role=reviewer"))
     },
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -78,8 +76,7 @@ export function useCreateReviewer() {
 
   return useMutation({
     mutationFn: async (data: CreateReviewerInput) => {
-      const response: any = await api.post("/admin/users/reviewer", data)
-      return response.data || response
+      return unwrapApiData(await api.post("/admin/users/reviewer", data))
     },
     onSuccess: () => {
       // Invalidate and refetch users list
@@ -87,7 +84,7 @@ export function useCreateReviewer() {
       queryClient.invalidateQueries({ queryKey: adminKeys.reviewers() })
       toast.success("Reviewer created successfully")
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Failed to create reviewer", {
         description: getErrorMessage(error),
       })
@@ -103,14 +100,15 @@ export function useAssignReviewer() {
 
   return useMutation({
     mutationFn: async (data: AssignReviewerInput) => {
-      const response: any = await api.put(`/admin/templates/${data.templateId}/assign-reviewer`, { reviewerId: data.reviewerId })
-      return response.data || response
+      return unwrapApiData(
+        await api.put(`/admin/templates/${data.templateId}/assign-reviewer`, { reviewerId: data.reviewerId }),
+      )
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["templates"] })
       toast.success("Reviewer assigned successfully")
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Failed to assign reviewer", {
         description: getErrorMessage(error),
       })
@@ -126,14 +124,15 @@ export function useUnassignReviewer() {
 
   return useMutation({
     mutationFn: async (templateId: string) => {
-      const response: any = await api.put(`/admin/templates/${templateId}/assign-reviewer`, { reviewerId: null })
-      return response.data || response
+      return unwrapApiData(
+        await api.put(`/admin/templates/${templateId}/assign-reviewer`, { reviewerId: null }),
+      )
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["templates"] })
       toast.success("Reviewer unassigned successfully")
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Failed to unassign reviewer", {
         description: getErrorMessage(error),
       })

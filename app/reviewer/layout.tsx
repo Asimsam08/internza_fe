@@ -14,19 +14,22 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  FileCheck,
   LayoutDashboard,
   LogOut,
   Settings,
   User,
   Bell,
   Inbox,
+  FolderKanban,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuthStore } from "@/stores/authStore"
 import { useCurrentUser } from "@/lib/hooks/use-auth"
+import { useReviewerProjects } from "@/lib/hooks/use-reviewer"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
+import { resolveCollegeLogoUrl, type CollegeBranding } from "@/lib/college-branding"
+import { Building2 } from "lucide-react"
 
 export default function ReviewerLayout({
   children,
@@ -37,6 +40,7 @@ export default function ReviewerLayout({
   const router = useRouter()
   const logout = useAuthStore((state) => state.logout)
   const { data: user } = useCurrentUser()
+  const { data: projects } = useReviewerProjects()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   // Extract reviewer name from profile
@@ -49,7 +53,20 @@ export default function ReviewerLayout({
     : user?.name?.split(' ')[0] || "Reviewer"
 
   const normalizedRole = user?.role?.trim()?.toLowerCase()
-  const roleLabel = normalizedRole === "reviewer" ? "Reviewer" : "User"
+  const isCollegeScoped =
+    normalizedRole === "reviewer" || normalizedRole === "college_admin"
+  const college = (user as { college?: CollegeBranding | null })?.college
+  const collegeLogo = resolveCollegeLogoUrl(college?.logoUrl)
+  const roleLabel =
+    normalizedRole === "college_admin"
+      ? "Placement · Reviewer"
+      : normalizedRole === "reviewer"
+        ? "Faculty Reviewer"
+        : "Reviewer"
+  const adminHome =
+    normalizedRole === "college_admin" && user?.collegeId
+      ? `/admin/colleges/${user.collegeId}`
+      : null
 
   const handleLogout = async () => {
     await logout()
@@ -62,24 +79,19 @@ export default function ReviewerLayout({
       icon: LayoutDashboard,
     },
     {
-      name: "My Reviews",
-      href: "/reviewer/assignments",
-      icon: FileCheck,
-    },
-    {
       name: "Review History",
       href: "/reviewer/history",
       icon: CheckCircle,
     },
     {
-      name: "Browse Projects",
+      name: "My Assignments",
       href: "/reviewer/projects",
       icon: Briefcase,
     },
   ]
 
   return (
-    <ProtectedRoute allowedRoles={['reviewer']}>
+    <ProtectedRoute allowedRoles={['reviewer', 'college_admin']}>
       <div className="min-h-screen bg-neutral-100">
       <div className="flex h-screen">
         {/* Sidebar */}
@@ -95,10 +107,26 @@ export default function ReviewerLayout({
           )}>
             <Link
               href="/reviewer/dashboard"
-              className={cn("flex items-center gap-2", sidebarCollapsed && "w-full justify-center")}
+              className={cn("flex items-center gap-2 min-w-0", sidebarCollapsed && "w-full justify-center")}
               aria-label="Go to dashboard"
             >
-              {sidebarCollapsed ? <InternzaLogo variant="icon" className="h-10 w-10" /> : <InternzaLogo />}
+              {isCollegeScoped && collegeLogo ? (
+                sidebarCollapsed ? (
+                  <Image src={collegeLogo} alt="" width={40} height={40} className="rounded-lg object-cover h-10 w-10" />
+                ) : (
+                  <>
+                    <Image src={collegeLogo} alt="" width={36} height={36} className="rounded-lg object-cover shrink-0" />
+                    <span className="min-w-0">
+                      <span className="block text-xs text-secondary-500 truncate">{college?.name}</span>
+                      <span className="block text-sm font-semibold text-secondary-900 truncate">Review queue</span>
+                    </span>
+                  </>
+                )
+              ) : sidebarCollapsed ? (
+                <InternzaLogo variant="icon" className="h-10 w-10" />
+              ) : (
+                <InternzaLogo />
+              )}
             </Link>
             {!sidebarCollapsed && (
               <button
@@ -125,6 +153,19 @@ export default function ReviewerLayout({
             </p>
           )}
           <nav className="p-4 flex-1 overflow-y-auto">
+            {adminHome ? (
+              <Link
+                href={adminHome}
+                className={cn(
+                  "mb-3 flex items-center rounded-lg px-3 py-2 text-sm font-medium text-secondary-600 hover:bg-neutral-100",
+                  sidebarCollapsed ? "justify-center" : "gap-2",
+                )}
+                title={sidebarCollapsed ? "College admin" : undefined}
+              >
+                <Building2 className="h-4 w-4 shrink-0" />
+                {!sidebarCollapsed && <span>College admin</span>}
+              </Link>
+            ) : null}
             <ul className="space-y-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href
@@ -148,6 +189,45 @@ export default function ReviewerLayout({
                 )
               })}
             </ul>
+
+            {!sidebarCollapsed && projects && projects.length > 0 && (
+              <div className="mt-6">
+                <div className="mb-3 px-3 flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-secondary-400">
+                    My Assignments
+                  </p>
+                  {projects.length > 5 && (
+                    <Link
+                      href="/reviewer/projects"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      View All
+                    </Link>
+                  )}
+                </div>
+                <ul className="space-y-1 max-h-[300px] overflow-y-auto">
+                  {projects.slice(0, 5).map((project) => (
+                    <li key={project.id}>
+                      <Link
+                        href={`/reviewer/dashboard`}
+                        className="flex items-start gap-2 rounded-lg px-3 py-2 text-sm transition-colors text-secondary-600 hover:bg-neutral-100"
+                      >
+                        <FolderKanban className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{project.title}</p>
+                          <p className="text-xs text-secondary-500 truncate">{project.student.name}</p>
+                          {project.pendingTasks > 0 && (
+                            <Badge variant="secondary" className="mt-1 text-[10px] h-5">
+                              {project.pendingTasks} pending
+                            </Badge>
+                          )}
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </nav>
         </aside>
 

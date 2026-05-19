@@ -10,7 +10,6 @@ import { Eye, EyeOff, ArrowRight, Mail } from "lucide-react"
 import { useAuthStore } from "@/stores/authStore"
 import { api } from "@/lib/api-client"
 import { useCurrentUser } from "@/lib/hooks/use-auth"
-import { InternzaLogo } from "@/components/brand/InternzaLogo"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -35,6 +34,9 @@ export default function LoginPage() {
         router.push("/reviewer/dashboard")
       } else if (role === "super_admin" || role === "superadmin") {
         router.push("/admin/dashboard")
+      } else if (role === "college_admin") {
+        const cid = (currentUser as { collegeId?: string }).collegeId
+        router.push(cid ? `/admin/colleges/${cid}` : "/login")
       }
     }
   }, [currentUser, authLoading, router, mounted])
@@ -68,7 +70,10 @@ export default function LoginPage() {
 
     try {
       console.log('Attempting login with:', { email })
-      const response: any = await api.post('/auth/signin', { email, password })
+      const response = await api.post<{ data?: { user?: Parameters<typeof login>[0] }; user?: Parameters<typeof login>[0] }>(
+        "/auth/signin",
+        { email, password },
+      )
       
       console.log('Login response received:', response)
       
@@ -116,6 +121,9 @@ export default function LoginPage() {
       } else if (role === "super_admin" || role === "superadmin") {
         console.log('Redirecting to admin dashboard')
         router.push("/admin/dashboard")
+      } else if (role === "college_admin") {
+        const cid = userData.collegeId
+        router.push(cid ? `/admin/colleges/${cid}` : "/login")
       } else {
         // Fallback for unknown roles
         console.warn('Unknown role:', role)
@@ -124,25 +132,22 @@ export default function LoginPage() {
         setError("Your account role is not recognized. Please contact support.")
         setIsLoading(false)
       }
-    } catch (err: any) {
-      console.error('Login error details:', err)
-      console.error('Error message:', err.message)
-      console.error('Error stack:', err.stack)
-      
-      // Handle specific error messages from backend - use exact backend messages
-      if (err.message?.includes('Invalid credentials') || err.message?.includes('401')) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Login failed"
+      console.error("Login error details:", err)
+
+      if (message.includes("Invalid credentials") || message.includes("401")) {
         setError("Invalid email or password. Please try again.")
-      } else if (err.message?.includes('not found') || err.message?.includes('404')) {
+      } else if (message.includes("not found") || message.includes("404")) {
         setError("No account found with this email. Please sign up.")
-      } else if (err.message?.includes('deactivated')) {
+      } else if (message.includes("deactivated")) {
         setError("Your account has been deactivated. Please contact support.")
-      } else if (err.message?.includes('network') || err.message?.includes('fetch') || err.message?.includes('ECONNREFUSED')) {
-        setError("Network error. Please check your connection and ensure backend is running.")
-      } else if (err.message?.includes('Session expired')) {
+      } else if (message.includes("network") || message.includes("fetch") || message.includes("ECONNREFUSED")) {
+        setError("Network error. Please check your network connection")
+      } else if (message.includes("Session expired")) {
         setError("Session expired. Please try logging in again.")
       } else {
-        // Display the exact backend error message
-        setError(err.message || "Login failed. Please check your credentials.")
+        setError(message || "Login failed. Please check your credentials.")
       }
     } finally {
       setIsLoading(false)
@@ -153,14 +158,14 @@ export default function LoginPage() {
     <div className="min-h-screen bg-neutral-100">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
-          <div className="text-center">
-            <Link href="/" className="inline-flex items-center justify-center">
-              <InternzaLogo />
-            </Link>
-            <h1 className="mt-6 text-2xl font-bold text-primary">Welcome back</h1>
-            <p className="mt-2 text-sm text-secondary-600">
-              Sign in to your proof portal
-            </p>
+          <div className="text-center flex flex-col items-center gap-4">
+            
+            <div>
+              <h1 className="text-2xl font-bold text-primary">Welcome back</h1>
+              <p className="mt-2 text-sm text-secondary-600">
+                Sign in to your proof portal
+              </p>
+            </div>
           </div>
           
           <div className="rounded-xl bg-white p-8 shadow-sm border border-secondary-200">

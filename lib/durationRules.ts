@@ -77,8 +77,6 @@ export function getPlanOptions(
 // Generate valid combinations for custom duration
 function generateValidCombinations(totalWeeks: number): number[][] {
   const combinations: number[][] = []
-  const blockSizes = [4, 8, 12]
-
   // Simple combinations for MVP
   if (totalWeeks === 4) combinations.push([4])
   if (totalWeeks === 8) combinations.push([8], [4, 4])

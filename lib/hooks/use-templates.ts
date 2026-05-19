@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { api, getErrorMessage } from "@/lib/api-client"
+import { api, getErrorMessage, unwrapApiData } from "@/lib/api-client"
 import { toast } from "sonner"
 
 // Types
@@ -64,7 +64,7 @@ export interface TemplateTaskDto {
   dependsOnTaskId?: string
 }
 
-export interface UpdateTemplateDto extends Partial<CreateTemplateDto> {}
+export type UpdateTemplateDto = Partial<CreateTemplateDto>
 
 export interface PublishTemplateDto {
   templateId: string
@@ -86,8 +86,9 @@ export function useTemplates(includeDrafts = false) {
   return useQuery({
     queryKey: templateKeys.list(includeDrafts),
     queryFn: async (): Promise<ProjectTemplate[]> => {
-      const response: any = await api.get(`/admin/templates?includeDrafts=${includeDrafts}`)
-      return response.data || response
+      return unwrapApiData<ProjectTemplate[]>(
+        await api.get(`/admin/templates?includeDrafts=${includeDrafts}`),
+      )
     },
   })
 }
@@ -99,8 +100,7 @@ export function useTemplate(id: string) {
   return useQuery({
     queryKey: templateKeys.detail(id),
     queryFn: async (): Promise<ProjectTemplate> => {
-      const response: any = await api.get(`/admin/templates/${id}`)
-      return response.data || response
+      return unwrapApiData<ProjectTemplate>(await api.get(`/admin/templates/${id}`))
     },
     enabled: !!id,
   })
@@ -114,8 +114,7 @@ export function useCreateTemplate() {
 
   return useMutation({
     mutationFn: async (data: CreateTemplateDto): Promise<ProjectTemplate> => {
-      const response: any = await api.post("/admin/templates", data)
-      return response.data || response
+      return unwrapApiData<ProjectTemplate>(await api.post("/admin/templates", data))
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: templateKeys.lists() })
@@ -123,7 +122,7 @@ export function useCreateTemplate() {
         description: `"${data.title}" has been saved as draft`,
       })
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Failed to create template", {
         description: getErrorMessage(error),
       })
@@ -139,8 +138,7 @@ export function useUpdateTemplate() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateTemplateDto }): Promise<ProjectTemplate> => {
-      const response: any = await api.put(`/admin/templates/${id}`, data)
-      return response.data || response
+      return unwrapApiData<ProjectTemplate>(await api.put(`/admin/templates/${id}`, data))
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: templateKeys.lists() })
@@ -149,7 +147,7 @@ export function useUpdateTemplate() {
         description: `"${data.title}" has been updated`,
       })
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Failed to update template", {
         description: getErrorMessage(error),
       })
@@ -165,8 +163,7 @@ export function usePublishTemplate() {
 
   return useMutation({
     mutationFn: async (data: PublishTemplateDto): Promise<ProjectTemplate> => {
-      const response: any = await api.post("/admin/templates/publish", data)
-      return response.data || response
+      return unwrapApiData<ProjectTemplate>(await api.post("/admin/templates/publish", data))
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: templateKeys.lists() })
@@ -175,7 +172,7 @@ export function usePublishTemplate() {
         description: `"${data.title}" is now visible to students`,
       })
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Failed to publish template", {
         description: getErrorMessage(error),
       })
@@ -191,8 +188,7 @@ export function useArchiveTemplate() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<ProjectTemplate> => {
-      const response: any = await api.post(`/admin/templates/${id}/archive`, {})
-      return response.data || response
+      return unwrapApiData<ProjectTemplate>(await api.post(`/admin/templates/${id}/archive`, {}))
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: templateKeys.lists() })
@@ -201,7 +197,7 @@ export function useArchiveTemplate() {
         description: `"${data.title}" has been archived`,
       })
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Failed to archive template", {
         description: getErrorMessage(error),
       })
@@ -217,14 +213,13 @@ export function useDeleteTemplate() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<{ message: string }> => {
-      const response: any = await api.delete(`/admin/templates/${id}`)
-      return response.data
+      return unwrapApiData(await api.delete(`/admin/templates/${id}`))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: templateKeys.lists() })
       toast.success("Template deleted successfully")
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Failed to delete template", {
         description: getErrorMessage(error),
       })

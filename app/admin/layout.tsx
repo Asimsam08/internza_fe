@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -23,11 +23,13 @@ import {
   CreditCard,
   ChevronLeft,
   ChevronRight,
-  FileText
+  FileText,
+  Building2,
 } from "lucide-react"
 
 const adminNav = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { label: "Colleges", href: "/super-admin/colleges", icon: Building2 },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Project Templates", href: "/admin/templates", icon: FileText },
   { label: "Reviews", href: "/admin/reviews", icon: FileCheck },
@@ -41,12 +43,18 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const router = useRouter()
   const logout = useAuthStore((state) => state.logout)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
+  // College admin routes use their own layout + auth (not super admin shell)
+  const isCollegeAdminRoute = pathname?.startsWith("/admin/colleges/")
+
   const handleLogout = async () => {
     await logout()
+  }
+
+  if (isCollegeAdminRoute) {
+    return <>{children}</>
   }
 
   return (

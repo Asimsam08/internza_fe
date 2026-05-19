@@ -19,7 +19,7 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const router = useRouter()
   const { userRole } = useAuthStore()
-  const { isLoading, data, error } = useCurrentUser()
+  const { isLoading, data } = useCurrentUser()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function ProtectedRoute({
   const isAuthenticated = !!data
 
   // Normalize role for comparison (prefer React Query data, fallback to Zustand)
-  const normalizedRole = (data as any)?.role?.trim()?.toLowerCase() || userRole?.trim()?.toLowerCase()
+  const normalizedRole = data?.role?.trim()?.toLowerCase() || userRole?.trim()?.toLowerCase()
 
   useEffect(() => {
     if (!isLoading && mounted) {
@@ -41,14 +41,20 @@ export default function ProtectedRoute({
         // Authenticated but wrong role, redirect based on role
         if (normalizedRole === "student") {
           router.push("/dashboard")
-        } else if (normalizedRole === "reviewer") {
-          router.push("/reviewer/dashboard")
+        } else if (normalizedRole === "reviewer" || normalizedRole === "college_admin") {
+          router.push(
+            normalizedRole === "college_admin"
+              ? (data as { collegeId?: string })?.collegeId
+                ? `/admin/colleges/${(data as { collegeId: string }).collegeId}`
+                : "/login"
+              : "/reviewer/dashboard",
+          )
         } else if (normalizedRole === "super_admin") {
           router.push("/admin/dashboard")
         }
       }
     }
-  }, [isAuthenticated, isLoading, normalizedRole, allowedRoles, redirectTo, router, mounted])
+  }, [isAuthenticated, isLoading, normalizedRole, allowedRoles, redirectTo, router, mounted, data])
 
   // Don't render until mounted to prevent hydration mismatch
   if (!mounted) {

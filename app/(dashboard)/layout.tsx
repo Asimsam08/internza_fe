@@ -9,9 +9,10 @@ import { InternzaLogo } from "@/components/brand/InternzaLogo"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CurrentWorkWidget } from "@/components/dashboard/CurrentWorkWidget"
-import { mockProjectTemplates, mockUsers, mockDurationProgress } from "@/lib/mockData"
+import { mockProjectTemplates } from "@/lib/mockData"
 import { useAuthStore } from "@/stores/authStore"
 import { useCurrentUser } from "@/lib/hooks/use-auth"
+import { useStudentDashboard } from "@/lib/hooks/use-student"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import { 
   LayoutDashboard, 
@@ -31,15 +32,17 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
-  CreditCard
+  CreditCard,
+  Laptop2Icon
 } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Internships", href: "/internship", icon: Briefcase },
-  { name: "Projects", href: "/projects", icon: Flag },
+  // { name: "Internships", href: "/internship", icon: Briefcase },
   { name: "Milestones", href: "/milestones", icon: Flag },
+  { name: "Projects", href: "/projects", icon: Laptop2Icon },
+  // { name: "Milestones", href: "/milestones", icon: Flag },
   { name: "Submissions", href: "/submissions", icon: Upload },
   { name: "Verification", href: "/verification", icon: Award },
 ]
@@ -69,6 +72,13 @@ export default function DashboardLayout({
   const logout = useAuthStore((state) => state.logout)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const { data: dashboard, isLoading: dashboardLoading } = useStudentDashboard()
+  const { data: user } = useCurrentUser()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const currentNavItem =
     allNavigation.find((item) => pathname === item.href) ??
@@ -76,17 +86,12 @@ export default function DashboardLayout({
     allNavigation.find((item) => item.href === "/dashboard" && pathname === "/dashboard")
 
   const pageTitle = currentNavItem?.name ?? "Dashboard"
-  const { data: user } = useCurrentUser()
-  const currentUser = user ?? mockUsers[0]
+  const currentUser = user
 
   // Extract first name from studentProfile or use name field
-  const userFirstName = currentUser?.studentProfile
-    ? currentUser.studentProfile.firstName
-    : currentUser?.name?.split(' ')[0] || "User"
+  const userFirstName = currentUser?.studentProfile?.firstName || currentUser?.name?.split(' ')[0] || "User"
 
-  const userName = currentUser?.studentProfile
-    ? `${currentUser.studentProfile.firstName} ${currentUser.studentProfile.lastName}`.trim()
-    : currentUser?.name || "User"
+  const userName = currentUser?.studentProfile?.firstName || currentUser?.name?.split(' ')[0] || "User"
 
   // Normalize role for comparison
   const normalizedRole = currentUser?.role?.trim()?.toLowerCase()
@@ -195,7 +200,7 @@ export default function DashboardLayout({
 
   const isActiveLink = (href: string) => {
     if (href === "/dashboard") {
-      return pathname === "/dashboard"
+      return pathname === "/dashboard" || pathname === "/internship"
     }
     return pathname.startsWith(href)
   }
@@ -290,8 +295,8 @@ export default function DashboardLayout({
         {!sidebarCollapsed && (
           <div className="px-3 pb-3">
             <CurrentWorkWidget
-              progress={mockDurationProgress}
-              activePlan={mockDurationProgress.planId}
+              dashboard={dashboard ?? null}
+              isLoading={dashboardLoading}
               onGoToMilestones={() => router.push("/milestones")}
             />
           </div>
@@ -332,13 +337,13 @@ export default function DashboardLayout({
                 href="/settings"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center justify-center rounded-lg p-2 hover:bg-secondary-50 transition-colors"
-                title={`${currentUser?.name || "User"} · ${roleLabel}`}
+                title={`${mounted ? (currentUser?.name || "User") : "User"} · ${roleLabel}`}
                 aria-label="Open settings"
               >
                 <div className="relative h-9 w-9 overflow-hidden rounded-full ring-2 ring-white">
                   <Image
-                    src={currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
-                    alt={currentUser?.name || "Profile"}
+                    src={mounted ? (currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop") : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
+                    alt="Profile"
                     width={36}
                     height={36}
                     className="h-9 w-9 object-cover"
@@ -349,8 +354,8 @@ export default function DashboardLayout({
               <div className="flex items-center gap-3 rounded-xl border border-secondary-100 bg-secondary-50 px-3 py-3">
                 <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-white">
                   <Image
-                    src={currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
-                    alt={currentUser?.name || "Profile"}
+                    src={mounted ? (currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop") : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
+                    alt="Profile"
                     width={40}
                     height={40}
                     className="h-10 w-10 object-cover"
@@ -358,13 +363,13 @@ export default function DashboardLayout({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold text-secondary-900">
-                    {userFirstName}
+                    {mounted ? userFirstName : "User"}
                   </div>
                   <div className="mt-0.5 flex items-center gap-2">
                     <Badge variant="secondary" className="h-5 px-2 text-[11px] font-semibold">
                       {roleLabel}
                     </Badge>
-                    {currentUser?.email ? (
+                    {mounted && currentUser?.email ? (
                       <span className="truncate text-xs font-medium text-secondary-500">
                         {currentUser.email}
                       </span>
@@ -483,8 +488,8 @@ export default function DashboardLayout({
                 >
                   <div className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-white">
                     <Image
-                      src={currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
-                      alt={currentUser?.name || "Profile"}
+                      src={mounted ? (currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop") : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
+                      alt="Profile"
                       width={32}
                       height={32}
                       className="h-8 w-8 object-cover"
@@ -492,7 +497,7 @@ export default function DashboardLayout({
                   </div>
                   <div className="hidden text-left lg:block">
                     <p className="text-sm font-semibold text-secondary-900 leading-5">
-                      {userFirstName}
+                      {mounted ? userFirstName : "User"}
                     </p>
                     <p className="text-xs text-secondary-500 leading-4">
                       {roleLabel}
@@ -506,8 +511,8 @@ export default function DashboardLayout({
                   <div className="flex items-start gap-3">
                     <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-white">
                       <Image
-                        src={currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
-                        alt={currentUser?.name || "Profile"}
+                        src={mounted ? (currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop") : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
+                        alt="Profile"
                         width={40}
                         height={40}
                         className="h-10 w-10 object-cover"
@@ -516,13 +521,13 @@ export default function DashboardLayout({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="truncate text-sm font-semibold text-secondary-900">
-                          {userName}
+                          {mounted ? userName : "User"}
                         </p>
                         <Badge variant="secondary" className="h-5 px-2 text-[11px] font-semibold">
                           {roleLabel}
                         </Badge>
                       </div>
-                      {currentUser?.email ? (
+                      {mounted && currentUser?.email ? (
                         <p className="mt-0.5 truncate text-xs font-medium text-secondary-500">
                           {currentUser.email}
                         </p>

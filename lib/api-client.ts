@@ -66,7 +66,7 @@ async function refreshAccessToken(): Promise<string> {
       throw new Error('Refresh failed')
     }
 
-    const data = await response.json()
+    await response.json()
     isRefreshing = false
     onRefreshed('success') // Notify all waiting requests
     return 'success'
@@ -77,6 +77,51 @@ async function refreshAccessToken(): Promise<string> {
   }
 }
 
+function isAuthEndpoint(endpoint: string): boolean {
+  return (
+    endpoint.includes('/auth/signin') ||
+    endpoint.includes('/auth/signup') ||
+    endpoint.includes('/auth/refresh')
+  )
+}
+
+async function parseErrorResponse(response: Response): Promise<never> {
+  try {
+    const error: ApiErrorResponse = await response.json()
+    console.error('API Error:', error)
+    throw new ApiError(
+      error.message || `API request failed with status ${response.status}`,
+      error.statusCode,
+      error.timestamp,
+      error.path,
+    )
+  } catch (e) {
+    if (e instanceof ApiError) throw e
+    throw new ApiError(`API request failed with status ${response.status}`, response.status)
+  }
+}
+
+/** Authenticated fetch with cookie session + automatic refresh on 401 */
+async function fetchWithAuth(url: string, options: RequestInit, endpoint: string): Promise<Response> {
+  const config: RequestInit = {
+    ...options,
+    credentials: 'include',
+  }
+
+  let response = await fetch(url, config)
+
+  if (response.status === 401 && !isAuthEndpoint(endpoint)) {
+    try {
+      await refreshAccessToken()
+      response = await fetch(url, config)
+    } catch {
+      throw new ApiError('Session expired. Please sign in again.', 401)
+    }
+  }
+
+  return response
+}
+
 // Main API client with automatic token refresh
 export async function apiClient<T>(
   endpoint: string,
@@ -84,59 +129,26 @@ export async function apiClient<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
 
-  // Include credentials for cookies
-  const config: RequestInit = {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+  const headers = new Headers(options.headers)
+  if (!(options.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
   }
 
-  let response = await fetch(url, config)
-
-  // If 401, try to refresh token (but not for auth endpoints to avoid session expired errors during login)
-  const isAuthEndpoint = endpoint.includes('/auth/signin') ||
-                         endpoint.includes('/auth/signup') ||
-                         endpoint.includes('/auth/refresh')
-  // Note: /auth/me is NOT excluded - it should trigger token refresh on page reload
-  
-  if (response.status === 401 && !isAuthEndpoint) {
-    try {
-      await refreshAccessToken()
-      // Retry original request
-      response = await fetch(url, config)
-    } catch (refreshError) {
-      // Refresh failed, throw error for calling code to handle
-      throw new Error('Session expired')
-    }
-  }
+  const response = await fetchWithAuth(
+    url,
+    { ...options, headers },
+    endpoint,
+  )
 
   if (!response.ok) {
-    try {
-      const error: ApiErrorResponse = await response.json()
-      console.error('API Error:', error)
-      // Pass through the exact backend error message using custom error class
-      throw new ApiError(
-        error.message || `API request failed with status ${response.status}`,
-        error.statusCode,
-        error.timestamp,
-        error.path,
-        error.method
-      )
-    } catch (parseError) {
-      // If error response is not JSON, throw generic error with status
-      throw new ApiError(`API request failed with status ${response.status}`, response.status)
-    }
+    await parseErrorResponse(response)
   }
 
   try {
     const data = await response.json()
     console.log(`API Response [${endpoint}]:`, data)
     return data
-  } catch (parseError) {
-    console.error('Failed to parse JSON response:', parseError)
+  } catch {
     throw new Error('Invalid response from server')
   }
 }
@@ -144,17 +156,17 @@ export async function apiClient<T>(
 // Convenience methods
 export const api = {
   get: <T>(endpoint: string) => apiClient<T>(endpoint, { method: 'GET' }),
-  post: <T>(endpoint: string, data: any) =>
+  post: <T>(endpoint: string, data: unknown) =>
     apiClient<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  put: <T>(endpoint: string, data: any) =>
+  put: <T>(endpoint: string, data: unknown) =>
     apiClient<T>(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
-  patch: <T>(endpoint: string, data: any) =>
+  patch: <T>(endpoint: string, data: unknown) =>
     apiClient<T>(endpoint, {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -162,31 +174,51 @@ export const api = {
   delete: <T>(endpoint: string) => apiClient<T>(endpoint, { method: 'DELETE' }),
 }
 
+export async function apiUpload<T>(
+  endpoint: string,
+  formData: FormData,
+  method: 'POST' | 'PATCH' = 'POST',
+): Promise<T> {
+  const url = `${API_BASE_URL}${endpoint}`
+  // Do not set Content-Type — browser sets multipart boundary with cookies
+  const response = await fetchWithAuth(url, { method, body: formData }, endpoint)
+
+  if (!response.ok) {
+    await parseErrorResponse(response)
+  }
+
+  return response.json()
+}
+
 /**
  * Extract error message from error object
  * Handles different error structures from API, React Query, etc.
  */
-export function getErrorMessage(error: any): string {
-  // If error has a message property, use it
-  if (error?.message) {
+export function unwrapApiData<T>(response: unknown): T {
+  if (response !== null && typeof response === "object" && "data" in response) {
+    return (response as { data: T }).data
+  }
+  return response as T
+}
+
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
     return error.message
   }
 
-  // If error has a response with data.message (axios-like structure)
-  if (error?.response?.data?.message) {
-    return error.response.data.message
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message: unknown }).message
+    if (typeof message === "string") return message
   }
 
-  // If error has a response with data (NestJS structure)
-  if (error?.response?.data) {
-    if (typeof error.response.data === 'string') {
-      return error.response.data
-    }
-    if (error.response.data.message) {
-      return error.response.data.message
+  if (error && typeof error === "object" && "response" in error) {
+    const data = (error as { response?: { data?: unknown } }).response?.data
+    if (typeof data === "string") return data
+    if (data && typeof data === "object" && "message" in data) {
+      const nested = (data as { message: unknown }).message
+      if (typeof nested === "string") return nested
     }
   }
 
-  // Fallback to generic message
-  return 'An unexpected error occurred'
+  return "An unexpected error occurred"
 }

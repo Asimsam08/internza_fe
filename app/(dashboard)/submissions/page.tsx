@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -8,459 +8,651 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAuthStore } from "@/stores/authStore"
-import { mockProjectTemplates, mockStudentProgress } from "@/lib/mockData"
+import { useStudentDashboard, useSubmitTask } from "@/lib/hooks/use-student"
 import { useRouter, useSearchParams } from "next/navigation"
-import { 
-  GitBranch, 
-  Image, 
-  FileText, 
-  Globe, 
-  Video, 
-  Upload,
+import { toast } from "sonner"
+import {
   CheckCircle2,
-  X,
   AlertCircle,
-  ClipboardList
+  Loader2,
+  FileText,
+  Send,
+  Plus,
+  X,
+  ArrowLeft,
+  Clock,
+  Lock,
 } from "lucide-react"
-
-type ProofKind = "commit_hash" | "screenshot" | "file_upload" | "deployment_link" | "documentation" | "video"
-
-interface ProofItem {
-  type: ProofKind
-  title: string
-  content?: string
-  url?: string
-}
 
 export default function SubmissionsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user } = useAuthStore()
-
-  const studentId = user?.id ?? mockStudentProgress[0]?.studentId
-
-  const enrollments = useMemo(() => {
-    if (!studentId) return []
-    return mockStudentProgress.filter((p) => p.studentId === studentId)
-  }, [studentId])
-
-  const selectedProjectId =
-    searchParams.get("project") ||
-    enrollments[0]?.projectId ||
-    mockProjectTemplates.find((t) => t.isPublished)?.id ||
-    mockProjectTemplates[0]?.id
-
-  const project = mockProjectTemplates.find((t) => t.id === selectedProjectId) ?? mockProjectTemplates[0]
+  const { data: dashboard, isLoading } = useStudentDashboard()
+  const submitTask = useSubmitTask()
 
   const selectedTaskIdFromUrl = searchParams.get("task")
-  const selectedTask =
-    project.tasks.find((t) => t.id === selectedTaskIdFromUrl) ??
-    (selectedTaskIdFromUrl ? undefined : project.tasks[0])
+  
+  // Get all unlocked tasks from dashboard
+  const allTasks = dashboard?.taskTimeline || []
+  // Tasks are unlocked if: not locked AND (DRAFT, REJECTED, CHANGES_REQUESTED, SUBMITTED, UNDER_REVIEW)
+  // Tasks become locked by default and only unlock when previous task is APPROVED
+  const unlockedTasks = allTasks.filter(t => !t.isLocked && (
+    t.status === 'DRAFT' || 
+    t.status === 'REJECTED' || 
+    t.status === 'CHANGES_REQUESTED' ||
+    t.status === 'SUBMITTED' ||
+    t.status === 'UNDER_REVIEW'
+  ))
+  
+  // Pre-select task from URL or first unlocked task
+  const selectedTask = unlockedTasks.find(t => t.id === selectedTaskIdFromUrl) || unlockedTasks[0]
 
-  const [proofs, setProofs] = useState<ProofItem[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [activeProofType, setActiveProofType] = useState<ProofKind>("commit_hash")
-  const [notes, setNotes] = useState("")
+  // Find the previous task to check if it's pending approval
+  const selectedTaskIndex = allTasks.findIndex((t) => t.id === selectedTask?.id)
+  const previousTask = selectedTaskIndex > 0 ? allTasks[selectedTaskIndex - 1] : null
 
-  // Form states
-  const [gitForm, setGitForm] = useState({ commitHash: "", repoUrl: "", branch: "" })
-  const [deploymentForm, setDeploymentForm] = useState({ url: "", description: "" })
-  const [docForm, setDocForm] = useState({ title: "", content: "" })
+  // Form states - Proof of Work
+  const [prLink, setPrLink] = useState("")
+  const [commitHash, setCommitHash] = useState("")
+  const [screenshots, setScreenshots] = useState<string[]>([])
+  const [screenshotInput, setScreenshotInput] = useState("")
 
-  const proofTypes = [
-    { id: "commit_hash" as ProofKind, label: "Commit", icon: GitBranch },
-    { id: "screenshot" as ProofKind, label: "Screenshot", icon: Image },
-    { id: "file_upload" as ProofKind, label: "Files", icon: FileText },
-    { id: "deployment_link" as ProofKind, label: "Deployment", icon: Globe },
-    { id: "documentation" as ProofKind, label: "Documentation", icon: FileText },
-    { id: "video" as ProofKind, label: "Video", icon: Video },
-  ]
+  // Form states - Reflection
+  const [builtWhat, setBuiltWhat] = useState("")
+  const [problemSolved, setProblemSolved] = useState("")
+  const [hardestPart, setHardestPart] = useState("")
+  const [solutionApproach, setSolutionApproach] = useState("")
 
-  const addProof = () => {
-    let newProof: ProofItem = { type: activeProofType, title: "" }
+  // Form states - AI Disclosure
+  const [usedAI, setUsedAI] = useState<"yes" | "no" | "">("")
+  const [aiUsage, setAiUsage] = useState("")
+
+  // Pre-fill form when a rejected task is selected
+  useEffect(() => {
+    if (selectedTask && (selectedTask.status === 'REJECTED' || selectedTask.status === 'CHANGES_REQUESTED') && selectedTask.submission) {
+      try {
+        const parsed = JSON.parse(selectedTask.submission.description || '{}')
+        setBuiltWhat(parsed.builtWhat || '')
+        setProblemSolved(parsed.problemSolved || '')
+        setHardestPart(parsed.hardestPart || '')
+        setSolutionApproach(parsed.solutionApproach || '')
+        setUsedAI(parsed.usedAI || '')
+        setAiUsage(parsed.aiUsage || '')
+        setPrLink(selectedTask.submission.prLink || '')
+        setCommitHash(selectedTask.submission.commitHash || '')
+        setScreenshots(selectedTask.submission.screenshots || [])
+      } catch {
+        // If parsing fails, just set the basic fields
+        setPrLink(selectedTask.submission.prLink || '')
+        setCommitHash(selectedTask.submission.commitHash || '')
+        setScreenshots(selectedTask.submission.screenshots || [])
+      }
+    } else if (selectedTask && selectedTask.status === 'DRAFT') {
+      // Clear form for new task
+      setBuiltWhat('')
+      setProblemSolved('')
+      setHardestPart('')
+      setSolutionApproach('')
+      setUsedAI('')
+      setAiUsage('')
+      setPrLink('')
+      setCommitHash('')
+      setScreenshots([])
+    }
+  }, [selectedTask])
+
+  const handleAddScreenshot = () => {
+    if (screenshotInput.trim() && !screenshots.includes(screenshotInput.trim())) {
+      setScreenshots([...screenshots, screenshotInput.trim()])
+      setScreenshotInput("")
+    }
+  }
+
+  const handleRemoveScreenshot = (url: string) => {
+    setScreenshots(screenshots.filter(s => s !== url))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     
-    switch (activeProofType) {
-      case "commit_hash":
-        newProof = { 
-          type: activeProofType, 
-          title: `Git: ${gitForm.commitHash.slice(0, 7) || "commit"}`,
-          url: gitForm.repoUrl 
-        }
-        setGitForm({ commitHash: "", repoUrl: "", branch: "" })
-        break
-      case "deployment_link":
-        newProof = { 
-          type: activeProofType, 
-          title: deploymentForm.description || "Deployment",
-          url: deploymentForm.url 
-        }
-        setDeploymentForm({ url: "", description: "" })
-        break
-      case "documentation":
-        newProof = { 
-          type: activeProofType, 
-          title: docForm.title,
-          content: docForm.content 
-        }
-        setDocForm({ title: "", content: "" })
-        break
+    if (!selectedTask) {
+      toast.error("Please select a task")
+      return
     }
     
-    setProofs([...proofs, newProof])
+    if (!prLink.trim()) {
+      toast.error("PR Link is required")
+      return
+    }
+
+    if (!builtWhat.trim()) {
+      toast.error("Please describe what you built")
+      return
+    }
+
+    if (!problemSolved.trim()) {
+      toast.error("Please describe what problem you solved")
+      return
+    }
+
+
+    if (!usedAI) {
+      toast.error("Please answer the AI disclosure question")
+      return
+    }
+
+    try {
+      await submitTask.mutateAsync({
+        taskId: selectedTask.id,
+        prLink: prLink.trim(),
+        commitHash: commitHash.trim() || undefined,
+        description: JSON.stringify({
+          builtWhat: builtWhat.trim(),
+          problemSolved: problemSolved.trim(),
+          hardestPart: hardestPart.trim() || undefined,
+          solutionApproach: solutionApproach.trim() || undefined,
+          usedAI: usedAI,
+          aiUsage: usedAI === "yes" ? aiUsage.trim() : undefined,
+        }),
+        screenshots: screenshots.length > 0 ? screenshots : undefined,
+      })
+      // Clear form after successful submission
+      setPrLink("")
+      setCommitHash("")
+      setBuiltWhat("")
+      setProblemSolved("")
+      setHardestPart("")
+      setSolutionApproach("")
+      setUsedAI("")
+      setAiUsage("")
+      setScreenshots([])
+      setScreenshotInput("")
+      toast.success("Task submitted successfully!")
+      router.push("/dashboard")
+    } catch {
+      // Error is handled by the hook
+    }
   }
 
-  const removeProof = (index: number) => {
-    setProofs(proofs.filter((_, i) => i !== index))
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-secondary-600">Loading submissions...</p>
+        </div>
+      </div>
+    )
   }
 
-  const handleSubmit = async () => {
-    if (!selectedTask) return
-    if (proofs.length === 0) return
-
-    setIsSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setIsSubmitting(false)
-    setProofs([])
-    setNotes("")
+  if (!dashboard || unlockedTasks.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="h-12 w-12 text-amber-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Tasks Available</h3>
+            <p className="text-secondary-600 mb-4">You don't have any unlocked tasks to submit.</p>
+            <Button onClick={() => router.push("/dashboard")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-primary tracking-tight">Submit Proof</h1>
-          <p className="mt-1 text-sm text-secondary-500">
-            Select a project and task, then attach evidence for review.
-          </p>
-        </div>
+    <div className="max-w-4xl mx-auto space-y-6 p-4">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Dashboard
+        </Button>
       </div>
 
-      {/* Context selector */}
+      <div>
+        <h1 className="text-2xl font-bold text-primary tracking-tight">Submit Task</h1>
+        <p className="mt-1 text-sm text-secondary-500">
+          Provide your work details for review.
+        </p>
+      </div>
+
+      {/* Task Selector */}
       <Card className="border-secondary-200">
         <CardContent className="p-5">
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label>Project</Label>
-              <Select
-                value={project.id}
-                onValueChange={(v) => {
-                  const next = new URLSearchParams(searchParams.toString())
-                  next.set("project", v)
-                  next.delete("task")
-                  router.replace(`/submissions?${next.toString()}`)
-                  setProofs([])
-                  setNotes("")
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select project" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(enrollments.length > 0 ? enrollments : mockStudentProgress).map((p) => {
-                    const t = mockProjectTemplates.find((x) => x.id === p.projectId)
-                    if (!t) return null
-                    return (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.title}
-                      </SelectItem>
-                    )
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label>Task</Label>
-              <Select
-                value={selectedTask?.id ?? ""}
-                onValueChange={(v) => {
-                  const next = new URLSearchParams(searchParams.toString())
-                  next.set("project", project.id)
-                  next.set("task", v)
-                  router.replace(`/submissions?${next.toString()}`)
-                  setProofs([])
-                  setNotes("")
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select task" />
-                </SelectTrigger>
-                <SelectContent>
-                  {project.tasks
-                    .slice()
-                    .sort((a, b) => a.order - b.order)
-                    .map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        Task {t.order}: {t.title}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              {selectedTask ? (
+          <div className="space-y-2">
+            <Label>Select Task</Label>
+            <Select
+              value={selectedTask?.id ?? ""}
+              onValueChange={(v) => {
+                const next = new URLSearchParams(searchParams.toString())
+                next.set("task", v)
+                router.replace(`/submissions?${next.toString()}`)
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select task" />
+              </SelectTrigger>
+              <SelectContent>
+                {unlockedTasks.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    Task {t.order}: {t.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedTask && (
+              <div className="flex items-center gap-2 mt-2">
+                <Badge className={`${
+                  selectedTask.status === 'REJECTED' || selectedTask.status === 'CHANGES_REQUESTED'
+                    ? 'bg-red-100 text-red-800 border-red-200'
+                    : selectedTask.status === 'SUBMITTED' || selectedTask.status === 'UNDER_REVIEW'
+                    ? 'bg-blue-100 text-blue-800 border-blue-200'
+                    : 'bg-blue-100 text-blue-800 border-blue-200'
+                }`}>
+                  {selectedTask.status === 'REJECTED' || selectedTask.status === 'CHANGES_REQUESTED' ? (
+                    <>
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Needs Changes
+                    </>
+                  ) : selectedTask.status === 'SUBMITTED' || selectedTask.status === 'UNDER_REVIEW' ? (
+                    <>
+                      <Clock className="h-3 w-3 mr-1" />
+                      Under Review
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="h-3 w-3 mr-1" />
+                      In Progress
+                    </>
+                  )}
+                </Badge>
                 <p className="text-xs text-secondary-500">
-                  Expected output: <span className="font-medium text-secondary-700">{selectedTask.expectedOutput}</span>
+                  <span className="font-medium text-secondary-700">{selectedTask.title}</span>
                 </p>
-              ) : (
-                <p className="text-xs text-secondary-500">Choose a task to start submitting proof.</p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Proof Type Selector */}
-          <Card className="border-secondary-200">
-            <CardHeader>
-              <CardTitle className="text-base">Add Proof</CardTitle>
-              <CardDescription>Select proof type and fill details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {proofTypes.map((type) => (
-                  <Button
-                    key={type.id}
-                    variant={activeProofType === type.id ? "primary" : "outline"}
-                    size="sm"
-                    className="gap-1"
-                    onClick={() => setActiveProofType(type.id)}
-                  >
-                    <type.icon className="h-4 w-4" />
-                    {type.label}
-                  </Button>
-                ))}
+      {/* Task Progression Info */}
+      {selectedTask && (selectedTask.status === 'SUBMITTED' || selectedTask.status === 'UNDER_REVIEW') && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <Clock className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-blue-900 mb-1">Task Under Review</h4>
+                <p className="text-sm text-blue-700 mb-2">
+                  Your submission is being reviewed by the mentor. The next task will unlock once this task is approved.
+                </p>
+                <p className="text-xs text-blue-600">
+                  Completion is not equivalent to approval. Please wait for the reviewer's feedback.
+                </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-              {/* Dynamic Form */}
-              {activeProofType === "commit_hash" && (
-                <div className="space-y-3">
-                  <div>
-                    <Label>Repository URL</Label>
-                    <Input 
-                      placeholder="https://github.com/username/repo"
-                      value={gitForm.repoUrl}
-                      onChange={(e) => setGitForm({...gitForm, repoUrl: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>Commit Hash</Label>
-                      <Input 
-                        placeholder="abc123..."
-                        value={gitForm.commitHash}
-                        onChange={(e) => setGitForm({...gitForm, commitHash: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <Label>Branch</Label>
-                      <Input 
-                        placeholder="main"
-                        value={gitForm.branch}
-                        onChange={(e) => setGitForm({...gitForm, branch: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={addProof}
-                    disabled={!gitForm.repoUrl}
-                    className="w-full"
-                  >
-                    <GitBranch className="h-4 w-4 mr-2" />
-                    Add commit proof
-                  </Button>
-                </div>
-              )}
+      {/* Approved Task Info */}
+      {selectedTask && selectedTask.status === 'APPROVED' && (
+        <Card className="border-emerald-200 bg-emerald-50">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-emerald-900 mb-1">Task Approved</h4>
+                <p className="text-sm text-emerald-700 mb-2">
+                  Congratulations! Your task has been approved by the reviewer. The next task is now unlocked.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-              {activeProofType === "deployment_link" && (
-                <div className="space-y-3">
-                  <div>
-                    <Label>Deployment URL</Label>
-                    <Input 
-                      placeholder="https://my-project.vercel.app"
-                      value={deploymentForm.url}
-                      onChange={(e) => setDeploymentForm({...deploymentForm, url: e.target.value})}
-                    />
+      {/* Rejected Task Info */}
+      {selectedTask && (selectedTask.status === 'REJECTED' || selectedTask.status === 'CHANGES_REQUESTED') && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-red-900 mb-1">
+                  {selectedTask.status === 'REJECTED' ? 'Task Rejected' : 'Changes Requested'}
+                </h4>
+                <p className="text-sm text-red-700 mb-2">
+                  {selectedTask.status === 'REJECTED'
+                    ? 'Your task has been rejected. Please review the feedback below and resubmit with the necessary changes.'
+                    : 'The reviewer has requested changes. Please review the feedback below and update your submission.'}
+                </p>
+                {selectedTask.review?.feedback && (
+                  <div className="mt-3 p-3 bg-white rounded-lg border border-red-200">
+                    <p className="text-xs text-red-600 font-medium mb-1">Reviewer Feedback:</p>
+                    <p className="text-sm text-red-800">{selectedTask.review.feedback}</p>
                   </div>
-                  <div>
-                    <Label>Description</Label>
-                    <Input 
-                      placeholder="What did you deploy?"
-                      value={deploymentForm.description}
-                      onChange={(e) => setDeploymentForm({...deploymentForm, description: e.target.value})}
-                    />
-                  </div>
-                  <Button 
-                    onClick={addProof}
-                    disabled={!deploymentForm.url}
-                    className="w-full"
-                  >
-                    <Globe className="h-4 w-4 mr-2" />
-                    Add Deployment
-                  </Button>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-              {activeProofType === "documentation" && (
-                <div className="space-y-3">
-                  <div>
-                    <Label>Title</Label>
-                    <Input 
-                      placeholder="Documentation title"
-                      value={docForm.title}
-                      onChange={(e) => setDocForm({...docForm, title: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label>Content</Label>
-                    <Textarea 
-                      placeholder="Write your documentation..."
-                      rows={4}
-                      value={docForm.content}
-                      onChange={(e) => setDocForm({...docForm, content: e.target.value})}
-                    />
-                  </div>
-                  <Button 
-                    onClick={addProof}
-                    disabled={!docForm.title}
-                    className="w-full"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Add Documentation
-                  </Button>
-                </div>
-              )}
-
-              {(activeProofType === "screenshot" || activeProofType === "file_upload" || activeProofType === "video") && (
-                <div className="border-2 border-dashed border-secondary-300 rounded-lg p-8 text-center">
-                  <Upload className="h-8 w-8 mx-auto text-secondary-400 mb-2" />
-                  <p className="text-sm text-secondary-600 mb-4">
-                    {activeProofType === "screenshot" && "Upload screenshots showing your work"}
-                    {activeProofType === "file_upload" && "Upload code files, PDFs, or reports"}
-                    {activeProofType === "video" && "Upload or link video walkthroughs"}
+      {/* Locked Task Info */}
+      {selectedTask && selectedTask.isLocked && previousTask && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <Lock className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-amber-900 mb-1">Task Locked</h4>
+                <p className="text-sm text-amber-700 mb-2">
+                  This task is locked because the previous task (Task {previousTask.order}: {previousTask.title}) is not yet approved.
+                </p>
+                {previousTask.status === 'SUBMITTED' || previousTask.status === 'UNDER_REVIEW' ? (
+                  <p className="text-xs text-amber-600">
+                    The previous task is currently under review. Please wait for approval to proceed.
                   </p>
-                  <Input type="file" className="hidden" id="file-upload" />
-                  <Label htmlFor="file-upload">
-                    <Button variant="outline" type="button">Select Files</Button>
-                  </Label>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Notes */}
-          <Card className="border-secondary-200">
-            <CardHeader>
-              <CardTitle className="text-base">Submission Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea 
-                placeholder="Describe what you accomplished..."
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Submit */}
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => { setProofs([]); setNotes(""); }}>
-              Clear
-            </Button>
-            <Button 
-              className="flex-1"
-              disabled={!selectedTask || proofs.length === 0 || isSubmitting}
-              onClick={handleSubmit}
-            >
-              {isSubmitting ? "Submitting..." : "Submit for Review"}
-            </Button>
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-4">
-          <Card className="border-secondary-200">
-            <CardHeader>
-              <CardTitle className="text-base">Submission context</CardTitle>
-              <CardDescription>Confirm the task before submitting.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="rounded-lg border border-secondary-100 bg-secondary-50 p-3">
-                <div className="text-xs font-semibold text-secondary-500">Project</div>
-                <div className="mt-1 text-sm font-semibold text-secondary-900">{project.title}</div>
+                ) : (
+                  <p className="text-xs text-amber-600">
+                    Complete and submit the previous task to unlock this one.
+                  </p>
+                )}
               </div>
-              <div className="rounded-lg border border-secondary-100 bg-white p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="text-xs font-semibold text-secondary-500">Task</div>
-                    <div className="mt-1 text-sm font-semibold text-secondary-900">
-                      {selectedTask ? `Task ${selectedTask.order}: ${selectedTask.title}` : "Not selected"}
-                    </div>
-                  </div>
-                  {selectedTask ? (
-                    <Badge className="bg-accent/10 text-accent-700 border-0 text-xs font-semibold">
-                      <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                      Ready
-                    </Badge>
-                  ) : null}
-                </div>
-              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-              {selectedTask ? (
-                <div className="rounded-lg border border-secondary-100 bg-white p-3">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-secondary-500">
-                    <ClipboardList className="h-4 w-4 text-secondary-500" />
-                    Required proofs
-                  </div>
-                  <div className="mt-2 space-y-2">
-                    {selectedTask.proofRequirements.map((p, idx) => (
-                      <div key={idx} className="flex items-start gap-2 text-xs text-secondary-700">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-secondary-400" />
-                        <span className="flex-1">
-                          <span className="font-semibold">{p.type.replace("_", " ")}</span>
-                          {p.required ? <span className="text-secondary-500"> • required</span> : null}
-                          <div className="text-secondary-500">{p.description}</div>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+      {/* Submission Form */}
+      {selectedTask && selectedTask.status !== 'SUBMITTED' && selectedTask.status !== 'UNDER_REVIEW' && (
+        <Card className="border-secondary-200">
+          <CardHeader>
+            <CardTitle className="text-base">Task Submission</CardTitle>
+            <CardDescription>
+              {selectedTask.status === 'REJECTED' || selectedTask.status === 'CHANGES_REQUESTED'
+                ? "Your previous submission was rejected. Please update your work and resubmit."
+                : "Provide your work details and reflection for review."
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Section 1: Proof of Work */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-1 bg-primary rounded-full" />
+                  <h3 className="text-lg font-semibold text-primary">Proof of Work</h3>
                 </div>
-              ) : (
-                <div className="rounded-lg border border-secondary-100 bg-secondary-50 p-3 text-sm text-secondary-600">
-                  Select a task to see required proof formats.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-secondary-200">
-            <CardHeader>
-              <CardTitle className="text-base">Proof Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {proofs.length === 0 ? (
-                <div className="text-center py-4 text-secondary-500">
-                  <AlertCircle className="h-6 w-6 mx-auto mb-2" />
-                  <p className="text-sm">No proofs added</p>
-                </div>
-              ) : (
+                
                 <div className="space-y-2">
-                  {proofs.map((proof, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 bg-secondary-50 rounded">
-                      <span className="text-sm truncate">{proof.title}</span>
-                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => removeProof(idx)}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                  <Label htmlFor="prLink">
+                    Pull Request Link <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="prLink"
+                    type="url"
+                    placeholder="https://github.com/username/repo/pull/123"
+                    value={prLink}
+                    onChange={(e) => setPrLink(e.target.value)}
+                    required
+                    disabled={submitTask.isPending}
+                    className={prLink ? "border-green-300" : ""}
+                  />
+                  <p className="text-sm text-secondary-500">
+                    Link to your pull request on GitHub/GitLab
+                  </p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="commitHash">Commit Hash (Optional)</Label>
+                  <Input
+                    id="commitHash"
+                    placeholder="abc123def456..."
+                    value={commitHash}
+                    onChange={(e) => setCommitHash(e.target.value)}
+                    disabled={submitTask.isPending}
+                  />
+                  <p className="text-sm text-secondary-500">
+                    The commit hash of your submission
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="screenshots">Screenshots (Optional)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="screenshots"
+                      type="url"
+                      placeholder="https://example.com/screenshot.png"
+                      value={screenshotInput}
+                      onChange={(e) => setScreenshotInput(e.target.value)}
+                      disabled={submitTask.isPending}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddScreenshot())}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddScreenshot}
+                      disabled={submitTask.isPending || !screenshotInput.trim()}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add
+                    </Button>
+                  </div>
+                  {screenshots.length > 0 && (
+                    <div className="space-y-2 mt-3">
+                      {screenshots.map((url, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-secondary-50 rounded-lg border border-secondary-200">
+                          <FileText className="h-4 w-4 text-secondary-500 flex-shrink-0" />
+                          <span className="text-sm text-secondary-700 flex-1 truncate">{url}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveScreenshot(url)}
+                            disabled={submitTask.isPending}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Section 2: Task Reflection */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-1 bg-primary rounded-full" />
+                  <h3 className="text-lg font-semibold text-primary">Task Reflection</h3>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="builtWhat">
+                    What did you build? <span className="text-red-500">*</span>
+                  </Label>
+                  <Textarea
+                    id="builtWhat"
+                    placeholder="Describe the feature, component, or functionality you implemented..."
+                    value={builtWhat}
+                    onChange={(e) => setBuiltWhat(e.target.value)}
+                    rows={3}
+                    disabled={submitTask.isPending}
+                    required
+                    className={builtWhat ? "border-green-300" : ""}
+                  />
+                  <p className="text-sm text-secondary-500">
+                    Brief overview of what you implemented
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="problemSolved">
+                    What problem did you solve? <span className="text-red-500">*</span>
+                  </Label>
+                  <Textarea
+                    id="problemSolved"
+                    placeholder="What challenge or requirement did this task address?"
+                    value={problemSolved}
+                    onChange={(e) => setProblemSolved(e.target.value)}
+                    rows={3}
+                    disabled={submitTask.isPending}
+                    required
+                    className={problemSolved ? "border-green-300" : ""}
+                  />
+                  <p className="text-sm text-secondary-500">
+                    The specific problem or user need your solution addresses
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="hardestPart">
+                    What was the hardest part? <span className="text-amber-600">*</span>
+                  </Label>
+                  <Textarea
+                    id="hardestPart"
+                    placeholder="What aspect was most challenging or time-consuming?"
+                    value={hardestPart}
+                    onChange={(e) => setHardestPart(e.target.value)}
+                    rows={3}
+                    disabled={submitTask.isPending}
+                  />
+                  <p className="text-sm text-secondary-500">
+                    Technical challenges or complexities you encountered
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="solutionApproach">
+                    How did you solve it? <span className="text-amber-600">*</span>
+                  </Label>
+                  <Textarea
+                    id="solutionApproach"
+                    placeholder="Describe your approach, research, or problem-solving process..."
+                    value={solutionApproach}
+                    onChange={(e) => setSolutionApproach(e.target.value)}
+                    rows={3}
+                    disabled={submitTask.isPending}
+                  />
+                  <p className="text-sm text-secondary-500">
+                    Your thought process and implementation strategy
+                  </p>
+                </div>
+              </div>
+
+              {/* Section 3: AI Disclosure */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-1 bg-amber-500 rounded-full" />
+                  <h3 className="text-lg font-semibold text-amber-700">AI Disclosure</h3>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    Did you use AI for this task? <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        id="ai-yes"
+                        name="usedAI"
+                        value="yes"
+                        checked={usedAI === "yes"}
+                        onChange={(e) => setUsedAI(e.target.value as "yes" | "no")}
+                        disabled={submitTask.isPending}
+                        className="h-4 w-4 text-primary"
+                      />
+                      <Label htmlFor="ai-yes" className="cursor-pointer">Yes</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        id="ai-no"
+                        name="usedAI"
+                        value="no"
+                        checked={usedAI === "no"}
+                        onChange={(e) => setUsedAI(e.target.value as "yes" | "no")}
+                        disabled={submitTask.isPending}
+                        className="h-4 w-4 text-primary"
+                      />
+                      <Label htmlFor="ai-no" className="cursor-pointer">No</Label>
+                    </div>
+                  </div>
+                  <p className="text-sm text-secondary-500">
+                    Honest disclosure helps us understand your learning process
+                  </p>
+                </div>
+
+                {usedAI === "yes" && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <Label htmlFor="aiUsage">
+                      If yes, how did you use it? <span className="text-amber-600">(Strongly encouraged)</span>
+                    </Label>
+                    <Textarea
+                      id="aiUsage"
+                      placeholder="e.g., Used AI for debugging, code suggestions, understanding concepts, etc."
+                      value={aiUsage}
+                      onChange={(e) => setAiUsage(e.target.value)}
+                      rows={3}
+                      disabled={submitTask.isPending}
+                    />
+                    <p className="text-sm text-secondary-500">
+                      Describe how AI assisted you in completing this task
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setPrLink("")
+                    setCommitHash("")
+                    setBuiltWhat("")
+                    setProblemSolved("")
+                    setHardestPart("")
+                    setSolutionApproach("")
+                    setUsedAI("")
+                    setAiUsage("")
+                    setScreenshots([])
+                    setScreenshotInput("")
+                  }}
+                  disabled={submitTask.isPending}
+                >
+                  Clear
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 h-12 text-base"
+                  disabled={submitTask.isPending}
+                >
+                  {submitTask.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-5 w-5" />
+                      Submit Task
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

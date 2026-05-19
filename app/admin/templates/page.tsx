@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Plus,
@@ -20,13 +20,10 @@ import {
   Clock,
   AlertCircle,
   Loader2,
-  User
 } from "lucide-react"
 import { useTemplates, useDeleteTemplate, useArchiveTemplate, usePublishTemplate } from "@/lib/hooks/use-templates"
 import { useReviewers, useAssignReviewer, useUnassignReviewer } from "@/lib/hooks/use-admin"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { toast } from "sonner"
-
 type TabValue = "all" | "draft" | "published" | "archived"
 
 export default function AdminTemplatesPage() {
@@ -87,7 +84,7 @@ export default function AdminTemplatesPage() {
     try {
       await deleteMutation.mutateAsync(deleteDialog.templateId)
       setDeleteDialog({ open: false, templateId: "", templateTitle: "" })
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   }
@@ -96,15 +93,15 @@ export default function AdminTemplatesPage() {
     try {
       await archiveMutation.mutateAsync(archiveDialog.templateId)
       setArchiveDialog({ open: false, templateId: "", templateTitle: "" })
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   }
 
-  const handlePublish = async (templateId: string, templateTitle: string) => {
+  const handlePublish = async (templateId: string, _templateTitle: string) => {
     try {
       await publishMutation.mutateAsync({ templateId })
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   }

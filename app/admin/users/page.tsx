@@ -83,9 +83,9 @@ export default function AdminUsersPage() {
 
       setShowCredentials(true)
       toast.success("Reviewer account created successfully!")
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to create reviewer:", error)
-      toast.error(error.message || "Failed to create reviewer account")
+      toast.error(error instanceof Error ? error.message : "Failed to create reviewer account")
     }
   }
 

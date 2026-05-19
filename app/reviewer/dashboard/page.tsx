@@ -4,89 +4,98 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import { Textarea } from "@/components/ui/textarea"
 import {
-  CheckCircle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
+import { useReviewerDashboard, ReviewerTask, useApproveTask, useRejectTask } from "@/lib/hooks/use-reviewer"
+import {
   Clock,
   AlertCircle,
   FileCheck,
   ExternalLink,
   Eye,
-  Calendar,
-  Download,
-  TrendingUp,
-  Star,
   FileText,
+  Loader2,
 } from "lucide-react"
 
-const reviewTasks = [
-  {
-    id: 1,
-    student: {
-      name: "Alex Chen",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop",
-    },
-    milestone: {
-      title: "Milestone 3: Database Optimization & API Security",
-      internship: "Full-Stack Architecture Internship",
-    },
-    submittedAt: "2 hours ago",
-    files: [
-      { name: "prisma-schema.diff", type: "diff", size: "2.4 KB" },
-      { name: "benchmark-results.pdf", type: "pdf", size: "184 KB" },
-    ],
-    notes: "Implemented the indexing strategy discussed in our last sync. Query latency was reduced by 45% across the nine user tables. I also integrated JWT with rotating refresh tokens for the security milestone.",
-    checklist: [
-      { label: "Architecture Scalability", checked: true },
-      { label: "Security Protocol Adherence", checked: true },
-      { label: "Code Documentation", checked: false },
-    ],
-    mentorComments: "Great job on the query optimization...",
-    status: "pending",
-  },
-  {
-    id: 2,
-    student: {
-      name: "Maya Rodriguez",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=128&h=128&fit=crop",
-    },
-    milestone: {
-      title: "Milestone 1: User Interview Protocol",
-      internship: "UX Research Mastery",
-    },
-    submittedAt: "5 hours ago",
-    files: [
-      { name: "interview-guide.md", type: "markdown", size: "8.9 KB" },
-      { name: "consent-forms.pdf", type: "pdf", size: "156 KB" },
-    ],
-    status: "pending",
-  },
-  {
-    id: 3,
-    student: {
-      name: "Jordan Smith",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=128&h=128&fit=crop",
-    },
-    milestone: {
-      title: "Milestone 2: Statistical Analysis Pipeline",
-      internship: "Data Science Fellowship",
-    },
-    submittedAt: "1 day ago",
-    files: [
-      { name: "analysis.ipynb", type: "jupyter", size: "452 KB" },
-    ],
-    status: "in_progress",
-  },
-]
-
 export default function ReviewerDashboard() {
-  const [selectedTask, setSelectedTask] = useState(reviewTasks[0])
+  const { data: dashboardData, isLoading, error } = useReviewerDashboard()
+  const [selectedTask, setSelectedTask] = useState<ReviewerTask | null>(null)
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false)
+  const [feedback, setFeedback] = useState("")
 
-  const stats = {
-    total: reviewTasks.length,
-    pending: reviewTasks.filter(t => t.status === "pending").length,
-    inProgress: reviewTasks.filter(t => t.status === "in_progress").length,
-    urgent: reviewTasks.filter(t => t.status === "pending" && t.submittedAt.includes("day")).length,
+  const approveTask = useApproveTask()
+  const rejectTask = useRejectTask()
+
+  const reviewTasks = dashboardData?.tasks || []
+  const stats = dashboardData?.stats || { total: 0, pending: 0, inProgress: 0, urgent: 0 }
+
+  // Set initial selected task when data loads
+  if (reviewTasks.length > 0 && !selectedTask) {
+    setSelectedTask(reviewTasks[0])
+  }
+
+  const handleApprove = () => {
+    if (selectedTask) {
+      approveTask.mutate({ taskId: selectedTask.taskId, feedback: feedback || undefined })
+      setApproveDialogOpen(false)
+      setFeedback("")
+      setSelectedTask(null)
+    }
+  }
+
+  const handleReject = () => {
+    if (selectedTask) {
+      rejectTask.mutate({ taskId: selectedTask.taskId, feedback: feedback || "Task rejected" })
+      setRejectDialogOpen(false)
+      setFeedback("")
+      setSelectedTask(null)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-secondary-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="h-8 w-8 text-red-600 mx-auto mb-4" />
+          <p className="text-red-600 mb-2">Failed to load dashboard</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (reviewTasks.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <FileCheck className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
+          <p className="text-secondary-600 mb-2">No pending reviews</p>
+          <p className="text-sm text-secondary-500">You're all caught up!</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -171,15 +180,23 @@ export default function ReviewerDashboard() {
                   onClick={() => setSelectedTask(task)}
                   className={cn(
                     "w-full p-3 sm:p-4 text-left transition-colors hover:bg-neutral-100",
-                    selectedTask.id === task.id ? "bg-primary/5" : ""
+                    selectedTask?.id === task.id ? "bg-primary/5" : ""
                   )}
                 >
                   <div className="flex items-start gap-3">
-                    <img
-                      src={task.student.avatar}
-                      alt={task.student.name}
-                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex-shrink-0"
-                    />
+                    {task.student.avatar ? (
+                      <img
+                        src={task.student.avatar}
+                        alt={task.student.name}
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <span className="text-primary font-semibold text-sm">
+                          {task.student.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <p className="font-medium text-primary text-sm sm:text-base truncate">{task.student.name}</p>
@@ -193,7 +210,8 @@ export default function ReviewerDashboard() {
                           variant="outline"
                           className={cn(
                             "text-xs",
-                            task.status === "pending" ? "text-amber-600 border-amber-200" : "text-blue-600 border-blue-200"
+                            task.status === "pending" ? "text-amber-600 border-amber-200" :
+                            "text-blue-600 border-blue-200"
                           )}
                         >
                           {task.status === "pending" ? "Pending" : "In Progress"}
@@ -208,98 +226,244 @@ export default function ReviewerDashboard() {
         </Card>
 
         {/* Review Detail */}
-        <Card className="lg:col-span-2">
-          <CardContent className="p-4 sm:p-6">
-            {/* Task Header */}
-            <div className="flex items-start gap-3 sm:gap-4 border-b border-secondary-100 pb-4 sm:pb-6">
-              <img
-                src={selectedTask.student.avatar}
-                alt={selectedTask.student.name}
-                className="h-10 w-10 sm:h-12 sm:w-12 rounded-full flex-shrink-0"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <div>
-                    <Badge variant="secondary" className="mb-1 sm:mb-2 text-xs">MILESTONE 3</Badge>
-                    <h2 className="font-semibold text-primary text-sm sm:text-base">{selectedTask.student.name}</h2>
-                    <p className="text-xs sm:text-sm text-secondary-600">{selectedTask.milestone.title}</p>
+        {selectedTask && (
+          <Card className="lg:col-span-2">
+            <CardContent className="p-4 sm:p-6">
+              {/* Task Header */}
+              <div className="flex items-start gap-3 sm:gap-4 border-b border-secondary-100 pb-4 sm:pb-6">
+                {selectedTask.student.avatar ? (
+                  <img
+                    src={selectedTask.student.avatar}
+                    alt={selectedTask.student.name}
+                    className="h-10 w-10 sm:h-12 sm:w-12 rounded-full flex-shrink-0"
+                  />
+                ) : (
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-primary font-semibold text-lg">
+                      {selectedTask.student.name.charAt(0).toUpperCase()}
+                    </span>
                   </div>
-                  <Badge variant="success" className="text-xs">IN REVIEW</Badge>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <div>
+                      <h2 className="font-semibold text-primary text-sm sm:text-base">{selectedTask.student.name}</h2>
+                      <p className="text-xs sm:text-sm text-secondary-600">{selectedTask.milestone.title}</p>
+                      <p className="text-xs text-secondary-500">{selectedTask.milestone.internship}</p>
+                    </div>
+                    <Badge variant="success" className="text-xs">IN REVIEW</Badge>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Submission Overview */}
-            <div className="border-b border-secondary-100 py-4 sm:py-6">
-              <h3 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-primary">SUBMISSION OVERVIEW</h3>
-              <p className="text-xs sm:text-sm text-secondary-600">{selectedTask.notes || "No notes provided."}</p>
-            </div>
+              {/* PR Link */}
+              {selectedTask.prLink && (
+                <div className="border-b border-secondary-100 py-4 sm:py-6">
+                  <h3 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-primary">PULL REQUEST</h3>
+                  <a
+                    href={selectedTask.prLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-primary hover:underline text-sm"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {selectedTask.prLink}
+                  </a>
+                </div>
+              )}
 
-            {/* Proof Attachments */}
-            <div className="border-b border-secondary-100 py-4 sm:py-6">
-              <h3 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-primary">PROOF ATTACHMENTS</h3>
-              <div className="space-y-2">
-                {selectedTask.files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between rounded-lg border border-secondary-200 bg-neutral-100 p-3">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-4 sm:h-5 w-4 sm:w-5 text-secondary-400" />
-                      <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">{file.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <span className="text-xs text-secondary-500">{file.size}</span>
-                      <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8 p-0">
-                        <ExternalLink className="h-3 sm:h-4 w-3 sm:w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+              {/* Commit Hash */}
+              {selectedTask.commitHash && (
+                <div className="border-b border-secondary-100 py-4 sm:py-6">
+                  <h3 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-primary">COMMIT HASH</h3>
+                  <p className="text-xs sm:text-sm text-secondary-600 font-mono">{selectedTask.commitHash}</p>
+                </div>
+              )}
 
-            {/* Technical Review Checklist */}
-            {selectedTask.checklist && (
+              {/* Submission Overview */}
               <div className="border-b border-secondary-100 py-4 sm:py-6">
-                <h3 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-primary">TECHNICAL REVIEW CHECKLIST</h3>
-                <div className="space-y-2">
-                  {selectedTask.checklist.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className={cn(
-                        "flex h-4 sm:h-5 w-4 sm:w-5 items-center justify-center rounded border flex-shrink-0",
-                        item.checked ? "border-emerald-500 bg-emerald-500" : "border-secondary-300"
-                      )}>
-                        {item.checked && <CheckCircle className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-white" />}
+                <h3 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-primary">SUBMISSION OVERVIEW</h3>
+                {selectedTask.notes ? (
+                  (() => {
+                    try {
+                      const parsed = JSON.parse(selectedTask.notes)
+                      return (
+                        <div className="space-y-2 text-xs sm:text-sm text-secondary-600">
+                          {parsed.builtWhat && (
+                            <div>
+                              <span className="font-medium text-primary">Built: </span>
+                              {parsed.builtWhat}
+                            </div>
+                          )}
+                          {parsed.problemSolved && (
+                            <div>
+                              <span className="font-medium text-primary">Problem Solved: </span>
+                              {parsed.problemSolved}
+                            </div>
+                          )}
+                          {parsed.hardestPart && (
+                            <div>
+                              <span className="font-medium text-primary">Hardest Part: </span>
+                              {parsed.hardestPart}
+                            </div>
+                          )}
+                          {parsed.solutionApproach && (
+                            <div>
+                              <span className="font-medium text-primary">Solution Approach: </span>
+                              {parsed.solutionApproach}
+                            </div>
+                          )}
+                          {parsed.usedAI && (
+                            <div>
+                              <span className="font-medium text-primary">Used AI: </span>
+                              {parsed.usedAI === 'yes' ? 'Yes' : 'No'}
+                            </div>
+                          )}
+                          {parsed.aiUsage && parsed.usedAI === 'yes' && (
+                            <div>
+                              <span className="font-medium text-primary">AI Usage: </span>
+                              {parsed.aiUsage}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    } catch {
+                      return <p className="text-xs sm:text-sm text-secondary-600">{selectedTask.notes}</p>
+                    }
+                  })()
+                ) : (
+                  <p className="text-xs sm:text-sm text-secondary-600">No notes provided.</p>
+                )}
+              </div>
+
+              {/* Proof Attachments */}
+              {selectedTask.files.length > 0 && (
+                <div className="border-b border-secondary-100 py-4 sm:py-6">
+                  <h3 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-primary">PROOF ATTACHMENTS</h3>
+                  <div className="space-y-2">
+                    {selectedTask.files.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between rounded-lg border border-secondary-200 bg-neutral-100 p-3">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-4 sm:h-5 w-4 sm:w-5 text-secondary-400" />
+                          <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">{file.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <span className="text-xs text-secondary-500">{file.size}</span>
+                          {file.url && (
+                            <a
+                              href={file.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-7 w-7 sm:h-8 sm:w-8 flex items-center justify-center rounded hover:bg-secondary-100 transition-colors"
+                            >
+                              <ExternalLink className="h-3 sm:h-4 w-3 sm:w-4 text-secondary-500" />
+                            </a>
+                          )}
+                        </div>
                       </div>
-                      <span className={cn("text-xs sm:text-sm", item.checked ? "text-primary" : "text-secondary-500")}>{item.label}</span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Mentor Comments */}
-            {selectedTask.mentorComments && (
-              <div className="border-b border-secondary-100 py-4 sm:py-6">
-                <h3 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-primary">MENTOR COMMENTS</h3>
-                <div className="rounded-lg bg-neutral-100 p-3">
-                  <p className="text-xs sm:text-sm text-secondary-600">{selectedTask.mentorComments}</p>
-                </div>
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 sm:gap-3 pt-4 sm:pt-6 flex-wrap">
+                <Button
+                  variant="outline"
+                  className="text-red-600 hover:bg-red-50 text-xs sm:text-sm"
+                  onClick={() => setRejectDialogOpen(true)}
+                  disabled={approveTask.isPending || rejectTask.isPending}
+                >
+                  Reject
+                </Button>
+                <Button
+                  className="bg-primary text-xs sm:text-sm"
+                  onClick={() => setApproveDialogOpen(true)}
+                  disabled={approveTask.isPending || rejectTask.isPending}
+                >
+                  Approve
+                </Button>
               </div>
-            )}
+            </CardContent>
+          </Card>
+        )}
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-2 sm:gap-3 pt-4 sm:pt-6 flex-wrap">
-              <Button variant="outline" className="text-red-600 hover:bg-red-50 text-xs sm:text-sm">
-                Reject
+        {/* Reject Dialog */}
+        <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reject Task</DialogTitle>
+              <DialogDescription>
+                Provide feedback to the student on why this task was rejected.
+              </DialogDescription>
+            </DialogHeader>
+            <Textarea
+              placeholder="Enter your feedback here..."
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              rows={4}
+            />
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRejectDialogOpen(false)
+                  setFeedback("")
+                }}
+              >
+                Cancel
               </Button>
-              <Button variant="outline" className="text-xs sm:text-sm">
-                Request Changes
+              <Button
+                variant="destructive"
+                onClick={handleReject}
+                disabled={rejectTask.isPending}
+              >
+                {rejectTask.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Reject Task
               </Button>
-              <Button className="bg-primary text-xs sm:text-sm">
-                Approve Proof
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Approve Dialog */}
+        <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Approve Task</DialogTitle>
+              <DialogDescription>
+                Optionally provide feedback to the student on their submission.
+              </DialogDescription>
+            </DialogHeader>
+            <Textarea
+              placeholder="Enter your feedback here (optional)..."
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              rows={4}
+            />
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setApproveDialogOpen(false)
+                  setFeedback("")
+                }}
+              >
+                Cancel
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <Button
+                onClick={handleApprove}
+                disabled={approveTask.isPending}
+              >
+                {approveTask.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Approve Task
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
