@@ -31,7 +31,11 @@ function SetupForm() {
     try {
       const res = await api.post<{ data?: { user?: Parameters<typeof login>[0] }; user?: Parameters<typeof login>[0] }>(
         "/invite/setup",
-        { collegeId, token, password },
+        {
+          ...(collegeId ? { collegeId } : {}),
+          token,
+          password,
+        },
       )
       const user = res.data?.user ?? res.user
       if (!user) throw new Error("Invalid setup response")
@@ -53,7 +57,7 @@ function SetupForm() {
   return (
     <Card className="max-w-md w-full">
       <CardHeader>
-        <CardTitle>Create your account</CardTitle>
+        <CardTitle>{collegeId ? "Create your account" : "Create your reviewer account"}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">

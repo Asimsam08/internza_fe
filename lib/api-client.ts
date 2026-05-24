@@ -85,20 +85,55 @@ function isAuthEndpoint(endpoint: string): boolean {
   )
 }
 
-async function parseErrorResponse(response: Response): Promise<never> {
-  try {
-    const error: ApiErrorResponse = await response.json()
-    console.error('API Error:', error)
-    throw new ApiError(
-      error.message || `API request failed with status ${response.status}`,
-      error.statusCode,
-      error.timestamp,
-      error.path,
-    )
-  } catch (e) {
-    if (e instanceof ApiError) throw e
-    throw new ApiError(`API request failed with status ${response.status}`, response.status)
+function messageFromErrorBody(body: unknown, status: number): string {
+  if (body === null || body === undefined) {
+    return `API request failed with status ${status}`
   }
+  if (typeof body === 'string') return body
+  if (typeof body !== 'object') {
+    return `API request failed with status ${status}`
+  }
+  const record = body as Record<string, unknown>
+  const msg = record.message
+  if (typeof msg === 'string' && msg.length > 0) return msg
+  if (Array.isArray(msg)) {
+    const joined = msg.map(String).filter(Boolean).join('; ')
+    if (joined) return joined
+  }
+  if (typeof record.error === 'string' && record.error.length > 0) {
+    return record.error
+  }
+  return `API request failed with status ${status}`
+}
+
+async function parseErrorResponse(response: Response): Promise<never> {
+  const status = response.status
+  let body: unknown = null
+  try {
+    const text = await response.text()
+    if (text.trim()) {
+      body = JSON.parse(text) as unknown
+    }
+  } catch {
+    body = null
+  }
+
+  const message = messageFromErrorBody(body, status)
+  const statusCode =
+    body && typeof body === 'object' && 'statusCode' in body
+      ? Number((body as { statusCode: unknown }).statusCode) || status
+      : status
+  const timestamp =
+    body && typeof body === 'object' && 'timestamp' in body
+      ? String((body as { timestamp: unknown }).timestamp)
+      : undefined
+  const path =
+    body && typeof body === 'object' && 'path' in body
+      ? String((body as { path: unknown }).path)
+      : undefined
+
+  console.error(`API Error [${status}]:`, body ?? '(empty response body)')
+  throw new ApiError(message, statusCode, timestamp, path)
 }
 
 /** Authenticated fetch with cookie session + automatic refresh on 401 */
@@ -202,6 +237,10 @@ export function unwrapApiData<T>(response: unknown): T {
 }
 
 export function getErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    return error.message
+  }
+
   if (error instanceof Error) {
     return error.message
   }
@@ -209,6 +248,7 @@ export function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object" && "message" in error) {
     const message = (error as { message: unknown }).message
     if (typeof message === "string") return message
+    if (Array.isArray(message)) return message.map(String).join("; ")
   }
 
   if (error && typeof error === "object" && "response" in error) {

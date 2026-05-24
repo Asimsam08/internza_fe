@@ -59,13 +59,13 @@ export function CohortLaunchDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{showCredentials ? "Students enrolled" : "Launch cohort"}</DialogTitle>
+          <DialogTitle>{showCredentials ? "Students enrolled — invite links" : "Launch cohort"}</DialogTitle>
           <DialogDescription>
             {showCredentials ? (
-              <>Cohort <strong>{cohortName}</strong> is now live. Distribute login details below.</>
+              <>Cohort <strong>{cohortName}</strong> is now live. Students are invited by email.</>
             ) : (
               <>
-                Upload students for <strong>{cohortName}</strong>. New accounts get a temporary password.
+                Upload students for <strong>{cohortName}</strong>. New students receive a secure setup link by email.
               </>
             )}
           </DialogDescription>

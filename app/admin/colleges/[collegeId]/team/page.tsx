@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { useCollegeTeam, useInviteReviewer } from "@/lib/hooks/use-college-admin"
+import {
+  useCollegeTeam,
+  useInviteReviewer,
+  type ReviewerInviteResult,
+} from "@/lib/hooks/use-college-admin"
+import { MagicLinkFallbackPanel } from "@/components/shared/MagicLinkFallbackPanel"
 import { Loader2, Mail, Shield, UserCheck } from "lucide-react"
 
 export default function CollegeTeamPage() {
@@ -15,10 +20,15 @@ export default function CollegeTeamPage() {
   const { data: team, isLoading } = useCollegeTeam(collegeId)
   const invite = useInviteReviewer(collegeId)
   const [email, setEmail] = useState("")
+  const [recentInvites, setRecentInvites] = useState<
+    (ReviewerInviteResult & { email: string })[]
+  >([])
 
   const onInvite = async (e: React.FormEvent) => {
     e.preventDefault()
-    await invite.mutateAsync(email)
+    const trimmed = email.trim()
+    const result = await invite.mutateAsync(trimmed)
+    setRecentInvites((prev) => [{ ...result, email: trimmed }, ...prev].slice(0, 8))
     setEmail("")
   }
 
@@ -124,6 +134,21 @@ export default function CollegeTeamPage() {
                 Send magic invite
               </Button>
             </form>
+
+            {recentInvites.length > 0 ? (
+              <MagicLinkFallbackPanel
+                className="mt-4"
+                title="Recent reviewer invites"
+                description="Copy a link to share on WhatsApp or college email if the invite did not arrive."
+                items={recentInvites.map((inv) => ({
+                  email: inv.email,
+                  inviteUrl: inv.inviteUrl,
+                  emailSent: inv.emailSent,
+                  roleLabel: "Reviewer",
+                }))}
+                autoExpandOnFailure
+              />
+            ) : null}
           </CardContent>
         </Card>
       </section>

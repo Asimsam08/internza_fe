@@ -3,6 +3,7 @@ export interface StudentCohortContext {
   cohortId: string
   name: string
   collegeName?: string
+  collegeLogoUrl?: string | null
   weekLabel?: string
   nextDueLabel?: string
   nextTaskTitle?: string

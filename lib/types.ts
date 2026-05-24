@@ -24,6 +24,7 @@ export interface User {
   email: string
   name?: string
   avatar?: string
+  profileImagePath?: string
   role: UserRole
   university?: string
   collegeId?: string | null

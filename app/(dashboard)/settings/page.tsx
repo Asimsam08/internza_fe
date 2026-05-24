@@ -10,16 +10,18 @@ import {
   Building2,
   GraduationCap,
   Save,
-  Camera
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useUpdateProfile, useCurrentUser, type User } from "@/lib/hooks/use-auth"
 import { toast } from "sonner"
+import { ProfileImageSection } from "@/components/ui/profile-image-section"
 
 export default function SettingsPage() {
   const { data: user } = useCurrentUser()
   const updateProfile = useUpdateProfile()
   const [mounted, setMounted] = useState(false)
+
+  // const { mutate: updateProfilePicture, isPending } = useUpdateProfilePicture()
 
   // Initialize form data with user data from API
   const [formData, setFormData] = useState({
@@ -46,7 +48,7 @@ export default function SettingsPage() {
         university: userData?.studentProfile?.university || "",
         gradYear: (
           userData?.studentProfile?.gradYear ??
-          userData?.studentProfile?.graduationYear
+          userData?.studentProfile?.graduationYear 
         )?.toString() ?? "",
         bio: userData?.studentProfile?.bio || "",
       })
@@ -92,6 +94,15 @@ export default function SettingsPage() {
     }
   }
 
+  // file handler
+
+  // const handleFileChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
+  //   const file = e.target.files?.[0]
+  //  if (!file) return
+
+  // updateProfilePicture(file)
+  // }
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       {/* Page Header */}
@@ -111,7 +122,7 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Avatar */}
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <div className="relative">
               <img
                 src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop"
@@ -126,7 +137,8 @@ export default function SettingsPage() {
               <p className="font-medium text-secondary-900">Profile Photo</p>
               <p className="text-sm text-secondary-500">JPG, PNG or GIF. Max 2MB.</p>
             </div>
-          </div>
+          </div> */}
+          <ProfileImageSection />
 
           {/* Form Fields */}
           <div className="grid gap-4 sm:grid-cols-2">

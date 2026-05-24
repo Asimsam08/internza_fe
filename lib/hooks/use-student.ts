@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, type ApiResponse } from '@/lib/api-client'
 import { toast } from 'sonner'
 import { getErrorMessage } from '@/lib/api-client'
 import type { StudentCohortContext } from '@/lib/cohort-labels'
+import { useActivePlanStore } from '@/stores/activePlanStore'
 
 export type { StudentCohortContext } from '@/lib/cohort-labels'
 
@@ -20,6 +22,9 @@ export interface PlanOption {
 export interface GetPlanOptionsResponse {
   plans: PlanOption[]
   hasActivePlan: boolean
+  hasCohortPlan?: boolean
+  hasSelfPlan?: boolean
+  canEnrollSelfPlan?: boolean
   activePlanId?: string
 }
 
@@ -74,6 +79,7 @@ export interface TaskTimeline {
     commitHash?: string
     description?: string
     screenshots?: string[]
+    screenshotUrls?: string[]
   }
   review?: {
     feedback?: string
@@ -121,8 +127,22 @@ export interface DashboardWarning {
   count: number
 }
 
+export interface AvailablePlanOption {
+  id: string
+  type: 'cohort' | 'self'
+  label: string
+  subtitle?: string
+  cohortId?: string | null
+  collegeLogoUrl?: string | null
+}
+
 export interface StudentDashboard {
   planId: string
+  activePlanId?: string
+  activePlanType?: 'cohort' | 'self'
+  availablePlans?: AvailablePlanOption[]
+  canEnrollSelfPlan?: boolean
+  hasMultiplePlans?: boolean
   cohort?: StudentCohortContext | null
   durationType: string
   totalWeeks: number
@@ -231,7 +251,10 @@ export function useEnrollInPlan() {
     },
     onSuccess: (data) => {
       toast.success(data.message || 'Enrolled successfully')
-      // Invalidate queries to refetch updated data
+      const planId = (data as { planId?: string })?.planId
+      if (planId) {
+        useActivePlanStore.getState().setActivePlanId(planId)
+      }
       queryClient.invalidateQueries({ queryKey: ['student', 'plan-options'] })
       queryClient.invalidateQueries({ queryKey: ['student', 'dashboard'] })
     },
@@ -248,14 +271,21 @@ export function useEnrollInPlan() {
 }
 
 export function useStudentDashboard() {
-  return useQuery({
-    queryKey: ['student', 'dashboard'],
+  const activePlanId = useActivePlanStore((s) => s.activePlanId)
+  const setActivePlanId = useActivePlanStore((s) => s.setActivePlanId)
+
+  const query = useQuery({
+    queryKey: ['student', 'dashboard', activePlanId ?? 'default'],
     queryFn: async () => {
       try {
-        const response = await api.get<ApiResponse<StudentDashboardApiData>>('/students/dashboard')
+        const qs = activePlanId
+          ? `?planId=${encodeURIComponent(activePlanId)}`
+          : ''
+        const response = await api.get<ApiResponse<StudentDashboardApiData>>(
+          `/students/dashboard${qs}`,
+        )
         const data = response.data
 
-        // Backend returns `{ hasActivePlan: false, message }` when no active plan exists.
         if (isNoActivePlan(data)) {
           return null
         }
@@ -263,13 +293,30 @@ export function useStudentDashboard() {
         return data as StudentDashboard
       } catch (error) {
         console.error('Failed to fetch dashboard:', error)
-        // Return null so UI can show "no plan / error" states
         return null
       }
     },
     retry: 1,
     retryDelay: 1000,
   })
+
+  useEffect(() => {
+    const dash = query.data
+    if (!dash?.availablePlans?.length) return
+
+    const stored = useActivePlanStore.getState().activePlanId
+    const validStored =
+      stored && dash.availablePlans.some((p) => p.id === stored)
+
+    if (validStored) return
+
+    const serverId = dash.activePlanId ?? dash.planId
+    if (serverId) {
+      setActivePlanId(serverId)
+    }
+  }, [query.data, setActivePlanId])
+
+  return query
 }
 
 export interface SubmitTaskDto {
@@ -277,7 +324,7 @@ export interface SubmitTaskDto {
   prLink: string
   commitHash?: string
   description?: string
-  screenshots?: string[]
+  screenshots: string[]
 }
 
 export interface SubmitTaskResponse {

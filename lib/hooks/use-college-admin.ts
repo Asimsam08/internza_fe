@@ -37,6 +37,26 @@ function unwrapData<T>(res: T | { data: T }): T {
   return res as T
 }
 
+export function useUpdateCollegeLogo(collegeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const fd = new FormData()
+      fd.append("file", file)
+      const res = await apiUpload<
+        | { data: { college: { logoUrl?: string | null } } }
+        | { college: { logoUrl?: string | null } }
+      >(`/admin/colleges/${collegeId}/logo`, fd, "PATCH")
+      return unwrapData(res)
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["college-admin", collegeId] })
+      toast.success("College logo updated")
+    },
+    onError: (e: Error) => toast.error(e.message || "Failed to update logo"),
+  })
+}
+
 export function useCollegeDashboard(collegeId: string) {
   return useQuery({
     queryKey: ["college-admin", collegeId, "dashboard"],
@@ -124,9 +144,9 @@ export function useCreateCohort(collegeId: string) {
 export interface StudentCredential {
   email: string
   name: string
-  temporaryPassword?: string
   isNewAccount: boolean
   emailSent: boolean
+  inviteUrl?: string
 }
 
 export interface ImportCohortResult {
@@ -179,14 +199,28 @@ export function useIssueStudentCredentials(collegeId: string) {
   })
 }
 
+export interface ReviewerInviteResult {
+  token: string
+  expiresAt: string
+  inviteUrl: string
+  emailSent: boolean
+}
+
 export function useInviteReviewer(collegeId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (email: string) =>
-      api.post(`/admin/colleges/${collegeId}/team/reviewers/invite`, { email }),
-    onSuccess: () => {
+    mutationFn: async (email: string) => {
+      return unwrapData<ReviewerInviteResult>(
+        await api.post(`/admin/colleges/${collegeId}/team/reviewers/invite`, { email }),
+      )
+    },
+    onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ["college-admin", collegeId, "team"] })
-      toast.success("Reviewer invite sent — they will be added to all cohorts when they accept")
+      if (result.emailSent) {
+        toast.success("Reviewer invite email sent")
+      } else {
+        toast.warning("Invite created — copy the link below to share manually")
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   })

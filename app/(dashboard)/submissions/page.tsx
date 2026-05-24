@@ -9,20 +9,35 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useStudentDashboard, useSubmitTask } from "@/lib/hooks/use-student"
+import { useUploadTaskScreenshots } from "@/lib/hooks/use-task-screenshots"
+import { MultiImageUpload, type ScreenshotItem } from "@/components/ui/multi-image-upload"
+import { resolveStorageUrl } from "@/lib/storage-url"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  FileText,
   Send,
-  Plus,
-  X,
   ArrowLeft,
   Clock,
   Lock,
 } from "lucide-react"
+
+const MIN_SCREENSHOTS = 5
+
+function pathsToItems(
+  paths: string[],
+  previewUrls?: string[],
+): ScreenshotItem[] {
+  return paths.map((path, i) => ({
+    id: `existing-${i}-${path}`,
+    path,
+    previewUrl:
+      previewUrls?.[i] ?? resolveStorageUrl(path) ?? path,
+    status: "done" as const,
+  }))
+}
 
 export default function SubmissionsPage() {
   const router = useRouter()
@@ -30,7 +45,7 @@ export default function SubmissionsPage() {
   const { data: dashboard, isLoading } = useStudentDashboard()
   const submitTask = useSubmitTask()
 
-  const selectedTaskIdFromUrl = searchParams.get("task")
+  const selectedTaskIdFromUrl = searchParams?.get("task")
   
   // Get all unlocked tasks from dashboard
   const allTasks = dashboard?.taskTimeline || []
@@ -46,6 +61,7 @@ export default function SubmissionsPage() {
   
   // Pre-select task from URL or first unlocked task
   const selectedTask = unlockedTasks.find(t => t.id === selectedTaskIdFromUrl) || unlockedTasks[0]
+  const uploadScreenshots = useUploadTaskScreenshots(selectedTask?.id ?? "")
 
   // Find the previous task to check if it's pending approval
   const selectedTaskIndex = allTasks.findIndex((t) => t.id === selectedTask?.id)
@@ -54,8 +70,7 @@ export default function SubmissionsPage() {
   // Form states - Proof of Work
   const [prLink, setPrLink] = useState("")
   const [commitHash, setCommitHash] = useState("")
-  const [screenshots, setScreenshots] = useState<string[]>([])
-  const [screenshotInput, setScreenshotInput] = useState("")
+  const [screenshotItems, setScreenshotItems] = useState<ScreenshotItem[]>([])
 
   // Form states - Reflection
   const [builtWhat, setBuiltWhat] = useState("")
@@ -80,15 +95,23 @@ export default function SubmissionsPage() {
         setAiUsage(parsed.aiUsage || '')
         setPrLink(selectedTask.submission.prLink || '')
         setCommitHash(selectedTask.submission.commitHash || '')
-        setScreenshots(selectedTask.submission.screenshots || [])
+        setScreenshotItems(
+          pathsToItems(
+            selectedTask.submission.screenshots || [],
+            selectedTask.submission.screenshotUrls,
+          ),
+        )
       } catch {
-        // If parsing fails, just set the basic fields
         setPrLink(selectedTask.submission.prLink || '')
         setCommitHash(selectedTask.submission.commitHash || '')
-        setScreenshots(selectedTask.submission.screenshots || [])
+        setScreenshotItems(
+          pathsToItems(
+            selectedTask.submission.screenshots || [],
+            selectedTask.submission.screenshotUrls,
+          ),
+        )
       }
     } else if (selectedTask && selectedTask.status === 'DRAFT') {
-      // Clear form for new task
       setBuiltWhat('')
       setProblemSolved('')
       setHardestPart('')
@@ -97,20 +120,9 @@ export default function SubmissionsPage() {
       setAiUsage('')
       setPrLink('')
       setCommitHash('')
-      setScreenshots([])
+      setScreenshotItems([])
     }
   }, [selectedTask])
-
-  const handleAddScreenshot = () => {
-    if (screenshotInput.trim() && !screenshots.includes(screenshotInput.trim())) {
-      setScreenshots([...screenshots, screenshotInput.trim()])
-      setScreenshotInput("")
-    }
-  }
-
-  const handleRemoveScreenshot = (url: string) => {
-    setScreenshots(screenshots.filter(s => s !== url))
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -141,6 +153,21 @@ export default function SubmissionsPage() {
       return
     }
 
+    const screenshotPaths = screenshotItems
+      .filter((i) => i.status === "done" && i.path)
+      .map((i) => i.path)
+
+    if (screenshotPaths.length < MIN_SCREENSHOTS) {
+      toast.error(`Upload at least ${MIN_SCREENSHOTS} screenshots`)
+      return
+    }
+
+    const stillUploading = screenshotItems.some((i) => i.status === "uploading")
+    if (stillUploading) {
+      toast.error("Wait for all screenshots to finish uploading")
+      return
+    }
+
     try {
       await submitTask.mutateAsync({
         taskId: selectedTask.id,
@@ -154,9 +181,8 @@ export default function SubmissionsPage() {
           usedAI: usedAI,
           aiUsage: usedAI === "yes" ? aiUsage.trim() : undefined,
         }),
-        screenshots: screenshots.length > 0 ? screenshots : undefined,
+        screenshots: screenshotPaths,
       })
-      // Clear form after successful submission
       setPrLink("")
       setCommitHash("")
       setBuiltWhat("")
@@ -165,8 +191,7 @@ export default function SubmissionsPage() {
       setSolutionApproach("")
       setUsedAI("")
       setAiUsage("")
-      setScreenshots([])
-      setScreenshotInput("")
+      setScreenshotItems([])
       toast.success("Task submitted successfully!")
       router.push("/dashboard")
     } catch {
@@ -227,7 +252,7 @@ export default function SubmissionsPage() {
             <Select
               value={selectedTask?.id ?? ""}
               onValueChange={(v) => {
-                const next = new URLSearchParams(searchParams.toString())
+                const next = new URLSearchParams(searchParams?.toString())
                 next.set("task", v)
                 router.replace(`/submissions?${next.toString()}`)
               }}
@@ -422,48 +447,18 @@ export default function SubmissionsPage() {
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="screenshots">Screenshots (Optional)</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="screenshots"
-                      type="url"
-                      placeholder="https://example.com/screenshot.png"
-                      value={screenshotInput}
-                      onChange={(e) => setScreenshotInput(e.target.value)}
-                      disabled={submitTask.isPending}
-                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddScreenshot())}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleAddScreenshot}
-                      disabled={submitTask.isPending || !screenshotInput.trim()}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add
-                    </Button>
-                  </div>
-                  {screenshots.length > 0 && (
-                    <div className="space-y-2 mt-3">
-                      {screenshots.map((url, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 bg-secondary-50 rounded-lg border border-secondary-200">
-                          <FileText className="h-4 w-4 text-secondary-500 flex-shrink-0" />
-                          <span className="text-sm text-secondary-700 flex-1 truncate">{url}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveScreenshot(url)}
-                            disabled={submitTask.isPending}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {selectedTask && (
+                  <MultiImageUpload
+                    min={MIN_SCREENSHOTS}
+                    max={10}
+                    items={screenshotItems}
+                    onChange={setScreenshotItems}
+                    disabled={submitTask.isPending || uploadScreenshots.isPending}
+                    onUpload={(files) =>
+                      uploadScreenshots.mutateAsync(files)
+                    }
+                  />
+                )}
               </div>
 
               {/* Section 2: Task Reflection */}
@@ -624,8 +619,7 @@ export default function SubmissionsPage() {
                     setSolutionApproach("")
                     setUsedAI("")
                     setAiUsage("")
-                    setScreenshots([])
-                    setScreenshotInput("")
+                    setScreenshotItems([])
                   }}
                   disabled={submitTask.isPending}
                 >

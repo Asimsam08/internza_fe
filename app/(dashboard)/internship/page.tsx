@@ -75,8 +75,12 @@ export default function InternshipPage() {
 
   const isLoading = plansLoading || dashboardLoading
 
-  // Check if student has an active plan using planStatus
-  const hasActivePlan = dashboard?.planStatus === 'ACTIVE' || planOptions?.hasActivePlan
+  const hasSelfPlan =
+    dashboard?.availablePlans?.some((p) => p.type === "self") ??
+    planOptions?.hasSelfPlan ??
+    false
+  const canEnrollSelf =
+    planOptions?.canEnrollSelfPlan ?? dashboard?.canEnrollSelfPlan ?? true
 
   const router = useRouter()
 
@@ -86,19 +90,18 @@ export default function InternshipPage() {
     }
   }, [enrollmentStep, selectedDuration])
 
-  // Redirect to dashboard after successful enrollment
   useEffect(() => {
     if (enrollMutation.isSuccess) {
-      router.replace('/dashboard')
+      router.replace("/dashboard")
     }
   }, [enrollMutation.isSuccess, router])
 
-  // Redirect users with active plans to dashboard
+  // Only redirect when student already has a self-paced plan (cohort-only may enroll here)
   useEffect(() => {
-    if (hasActivePlan && !enrollMutation.isPending) {
-      router.replace('/dashboard')
+    if (hasSelfPlan && !enrollMutation.isPending) {
+      router.replace("/dashboard")
     }
-  }, [hasActivePlan, enrollMutation.isPending, router])
+  }, [hasSelfPlan, enrollMutation.isPending, router])
 
   // Calculate required duration based on selected plan
   const getRequiredWeeks = () => {
@@ -214,8 +217,7 @@ export default function InternshipPage() {
     )
   }
 
-  // Redirect users with active plans to dashboard
-  if (hasActivePlan) {
+  if (hasSelfPlan) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -226,9 +228,22 @@ export default function InternshipPage() {
     )
   }
 
-  // First-time user - no active internship - show plan selection
-  if (!hasActivePlan) {
-    // Show error state if no plans available (likely backend issue)
+  if (!canEnrollSelf) {
+    return (
+      <div className="max-w-lg mx-auto py-12">
+        <Card>
+          <CardContent className="p-6 text-center space-y-4">
+            <p className="text-secondary-700">
+              You already have a self-paced internship. Use the plan switcher on your dashboard to move between cohort and self-paced work.
+            </p>
+            <Button onClick={() => router.push("/dashboard")}>Back to dashboard</Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show error state if no plans available (likely backend issue)
     if (!planOptions?.plans || planOptions.plans.length === 0) {
       return (
         <div className="space-y-8">
@@ -840,5 +855,4 @@ export default function InternshipPage() {
         </div>
       </div>
     )
-  }
 }

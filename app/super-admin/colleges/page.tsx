@@ -15,8 +15,7 @@ import { Label } from "@/components/ui/label"
 import { useCreateCollege, useSuperAdminColleges, type CollegeRow } from "@/lib/hooks/use-colleges"
 import { Loader2, Plus, Building2 } from "lucide-react"
 import Image from "next/image"
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") || "http://localhost:3002"
+import { resolveStorageUrl } from "@/lib/storage-url"
 
 export default function SuperAdminCollegesPage() {
   const { data: colleges = [], isLoading } = useSuperAdminColleges()
@@ -131,7 +130,7 @@ export default function SuperAdminCollegesPage() {
                       <span className="flex items-center gap-3">
                         {row.logoUrl ? (
                           <Image
-                            src={row.logoUrl.startsWith("http") ? row.logoUrl : `${API_BASE}${row.logoUrl}`}
+                            src={resolveStorageUrl(row.logoUrl) ?? row.logoUrl}
                             alt=""
                             width={32}
                             height={32}

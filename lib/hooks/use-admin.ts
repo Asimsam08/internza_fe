@@ -29,10 +29,18 @@ export interface User {
   }
 }
 
-export interface CreateReviewerInput {
+export interface InviteReviewerInput {
   fullName: string
   email: string
-  password: string
+}
+
+export interface InviteReviewerResult {
+  email: string
+  fullName: string
+  inviteSent: boolean
+  inviteUrl?: string
+  expiresAt: string
+  message: string
 }
 
 export interface AssignReviewerInput {
@@ -69,28 +77,37 @@ export function useReviewers() {
 }
 
 /**
- * Hook to create a new reviewer (admin only)
+ * Hook to invite a global reviewer by email (admin only)
  */
-export function useCreateReviewer() {
+export function useInviteReviewer() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: CreateReviewerInput) => {
-      return unwrapApiData(await api.post("/admin/users/reviewer", data))
+    mutationFn: async (data: InviteReviewerInput) => {
+      return unwrapApiData<InviteReviewerResult>(
+        await api.post("/admin/users/reviewer", data),
+      )
     },
-    onSuccess: () => {
-      // Invalidate and refetch users list
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: adminKeys.users() })
       queryClient.invalidateQueries({ queryKey: adminKeys.reviewers() })
-      toast.success("Reviewer created successfully")
+      if (result.inviteSent) {
+        toast.success("Reviewer invite email sent", { description: result.email })
+      } else {
+        toast.warning("Invite created — copy the link below to share manually")
+      }
+      return result
     },
     onError: (error: unknown) => {
-      toast.error("Failed to create reviewer", {
+      toast.error("Failed to send reviewer invite", {
         description: getErrorMessage(error),
       })
     },
   })
 }
+
+/** @deprecated use useInviteReviewer */
+export const useCreateReviewer = useInviteReviewer
 
 /**
  * Hook to assign reviewer to a template

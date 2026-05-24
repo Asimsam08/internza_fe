@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useStudentDashboard, getStudentProgressPercent } from "@/lib/hooks/use-student"
-import { CohortBanner } from "@/components/college/CohortBanner"
 import {
   getCurrentProjectSectionLabel,
   getDashboardCohort,
@@ -211,7 +210,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {cohort?.cohortId ? <CohortBanner cohort={cohort} /> : null}
       {/* Warning Banner */}
       {/* {warnings && warnings.length > 0 && (
         <div className={`p-4 rounded-xl border flex items-center gap-3 ${

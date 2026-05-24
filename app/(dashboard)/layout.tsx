@@ -9,6 +9,9 @@ import { InternzaLogo } from "@/components/brand/InternzaLogo"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CurrentWorkWidget } from "@/components/dashboard/CurrentWorkWidget"
+import { InternshipPlanSwitcher } from "@/components/dashboard/InternshipPlanSwitcher"
+import { CohortBanner } from "@/components/college/CohortBanner"
+import { getDashboardCohort } from "@/lib/cohort-labels"
 import { mockProjectTemplates } from "@/lib/mockData"
 import { useAuthStore } from "@/stores/authStore"
 import { useCurrentUser } from "@/lib/hooks/use-auth"
@@ -82,7 +85,7 @@ export default function DashboardLayout({
 
   const currentNavItem =
     allNavigation.find((item) => pathname === item.href) ??
-    allNavigation.find((item) => item.href !== "/dashboard" && pathname.startsWith(item.href + "/")) ??
+    allNavigation.find((item) => item.href !== "/dashboard" && pathname?.startsWith(item.href + "/")) ??
     allNavigation.find((item) => item.href === "/dashboard" && pathname === "/dashboard")
 
   const pageTitle = currentNavItem?.name ?? "Dashboard"
@@ -202,7 +205,7 @@ export default function DashboardLayout({
     if (href === "/dashboard") {
       return pathname === "/dashboard" || pathname === "/internship"
     }
-    return pathname.startsWith(href)
+    return pathname?.startsWith(href)
   }
 
   return (
@@ -342,7 +345,11 @@ export default function DashboardLayout({
               >
                 <div className="relative h-9 w-9 overflow-hidden rounded-full ring-2 ring-white">
                   <Image
-                    src={mounted ? (currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop") : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
+                    src={mounted ? (currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(
+  user?.name || "User"
+)}&background=e5e7eb&color=6b7280`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+  user?.name || "User"
+)}&background=e5e7eb&color=6b7280`}
                     alt="Profile"
                     width={36}
                     height={36}
@@ -354,7 +361,11 @@ export default function DashboardLayout({
               <div className="flex items-center gap-3 rounded-xl border border-secondary-100 bg-secondary-50 px-3 py-3">
                 <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-white">
                   <Image
-                    src={mounted ? (currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop") : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
+                    src={mounted ? (currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(
+  user?.name || "User"
+)}&background=e5e7eb&color=6b7280`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+  user?.name || "User"
+)}&background=e5e7eb&color=6b7280`}
                     alt="Profile"
                     width={40}
                     height={40}
@@ -488,7 +499,11 @@ export default function DashboardLayout({
                 >
                   <div className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-white">
                     <Image
-                      src={mounted ? (currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop") : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
+                      src={mounted ? (currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(
+  user?.name || "User"
+)}&background=e5e7eb&color=6b7280`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+  user?.name || "User"
+)}&background=e5e7eb&color=6b7280`}
                       alt="Profile"
                       width={32}
                       height={32}
@@ -511,7 +526,11 @@ export default function DashboardLayout({
                   <div className="flex items-start gap-3">
                     <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-white">
                       <Image
-                        src={mounted ? (currentUser?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop") : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"}
+                        src={mounted ? (currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(
+  user?.name || "User"
+)}&background=e5e7eb&color=6b7280`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+  user?.name || "User"
+)}&background=e5e7eb&color=6b7280`}
                         alt="Profile"
                         width={40}
                         height={40}
@@ -590,7 +609,15 @@ export default function DashboardLayout({
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-neutral-100 p-4 lg:p-6">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-7xl space-y-4">
+            {!dashboardLoading && dashboard?.planId ? (
+              <InternshipPlanSwitcher dashboard={dashboard} />
+            ) : null}
+            {!dashboardLoading &&
+            dashboard?.activePlanType === "cohort" &&
+            getDashboardCohort(dashboard) ? (
+              <CohortBanner cohort={getDashboardCohort(dashboard)!} />
+            ) : null}
             <ProtectedRoute allowedRoles={['student']}>
               {children}
             </ProtectedRoute>

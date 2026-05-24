@@ -135,7 +135,7 @@ export function CohortsTable({
                           disabled={issueCredentials.isPending}
                         >
                           <KeyRound className="h-4 w-4 mr-2" />
-                          Reset & show student logins
+                          Resend invites & show links
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <a
@@ -175,7 +175,7 @@ export function CohortsTable({
       <Dialog open={credentialsOpen} onOpenChange={setCredentialsOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Student login details</DialogTitle>
+            <DialogTitle>Student enrollment</DialogTitle>
           </DialogHeader>
           {issuedLogins ? (
             <StudentCredentialsPanel

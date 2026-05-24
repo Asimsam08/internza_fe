@@ -8,6 +8,7 @@ import { useCollegeCohorts, useCollegeDashboard } from "@/lib/hooks/use-college-
 import { Loader2, Plus, Users, GraduationCap, TrendingUp } from "lucide-react"
 import { NewCohortWizard } from "@/components/college/NewCohortWizard"
 import { CohortsTable, type CohortRow } from "@/components/college/CohortsTable"
+import { CollegeLogoUpload } from "@/components/college/college-logo-upload"
 
 export default function CollegeAdminDashboardPage() {
   const collegeId = useParams().collegeId as string
@@ -17,6 +18,10 @@ export default function CollegeAdminDashboardPage() {
 
   const stats = dashboard?.stats as
     | { activeCohorts?: number; students?: number; completionPct?: number }
+    | undefined
+
+  const college = dashboard?.college as
+    | { name?: string; logoUrl?: string | null }
     | undefined
 
   const draftCount = (cohorts as CohortRow[]).filter((c) => c.needsLaunch).length
@@ -35,11 +40,18 @@ export default function CollegeAdminDashboardPage() {
 
   return (
     <section className="space-y-8 max-w-6xl">
-      <header>
-        <h2 className="text-2xl font-bold text-secondary-900 tracking-tight">Overview</h2>
-        <p className="text-secondary-600 mt-1">
-          Manage cohorts, enroll students, and track internship completion for your college.
-        </p>
+      <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+        <article>
+          <h2 className="text-2xl font-bold text-secondary-900 tracking-tight">Overview</h2>
+          <p className="text-secondary-600 mt-1">
+            Manage cohorts, enroll students, and track internship completion for your college.
+          </p>
+        </article>
+        <CollegeLogoUpload
+          collegeId={collegeId}
+          logoUrl={college?.logoUrl}
+          collegeName={college?.name}
+        />
       </header>
 
       {draftCount > 0 && (

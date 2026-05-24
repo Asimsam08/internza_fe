@@ -28,8 +28,7 @@ import {
   User,
   Building2,
 } from "lucide-react"
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") || "http://localhost:3002"
+import { resolveStorageUrl } from "@/lib/storage-url"
 
 interface CollegeAdminShellProps {
   collegeId: string
@@ -50,11 +49,7 @@ export function CollegeAdminShell({
   const { data: user } = useCurrentUser()
   const [collapsed, setCollapsed] = useState(false)
 
-  const logoSrc = collegeLogoUrl
-    ? collegeLogoUrl.startsWith("http")
-      ? collegeLogoUrl
-      : `${API_BASE}${collegeLogoUrl}`
-    : null
+  const logoSrc = resolveStorageUrl(collegeLogoUrl)
 
   const nav = [
     {
@@ -154,7 +149,7 @@ export function CollegeAdminShell({
               <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-secondary-400">Menu</p>
             )}
             {nav.map((item) => {
-              const active = item.exact ? pathname === item.href : pathname.startsWith(item.href)
+              const active = item.exact ? pathname === item.href : pathname?.startsWith(item.href)
               return (
                 <Link
                   key={item.href}

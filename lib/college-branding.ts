@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") || "http://localhost:3002"
+import { resolveStorageUrl } from "@/lib/storage-url"
 
 export interface CollegeBranding {
   id: string
@@ -7,7 +7,5 @@ export interface CollegeBranding {
 }
 
 export function resolveCollegeLogoUrl(logoUrl?: string | null): string | null {
-  if (!logoUrl) return null
-  if (logoUrl.startsWith("http")) return logoUrl
-  return `${API_BASE}${logoUrl}`
+  return resolveStorageUrl(logoUrl)
 }

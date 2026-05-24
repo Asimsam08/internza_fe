@@ -21,7 +21,6 @@ import {
   Calendar
 } from "lucide-react"
 import { useStudentDashboard, getStudentProgressPercent, type TaskTimeline } from "@/lib/hooks/use-student"
-import { CohortBanner } from "@/components/college/CohortBanner"
 import {
   getCurrentProjectSectionLabel,
   getDashboardCohort,
@@ -257,8 +256,6 @@ export default function TaskRoadmapPage() {
 
   return (
     <div className="space-y-6">
-      {cohort?.cohortId ? <CohortBanner cohort={cohort} /> : null}
-
       {/* Page Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
