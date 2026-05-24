@@ -85,7 +85,7 @@ export function ProgressTimeline({ progress, className }: ProgressTimelineProps)
 
           {/* Milestones */}
           <div className="space-y-6">
-            {milestones.map((milestone, index) => (
+            {milestones.map((milestone) => (
               <div key={milestone.label} className="relative flex items-center gap-4">
                 {/* Icon */}
                 <div className="relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-white border-2 border-secondary-200 shadow-sm">

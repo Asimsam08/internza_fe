@@ -20,8 +20,8 @@ export default function AdminDashboardPage() {
 
   // Core metrics
   const coreMetrics = {
-    activeUsers: mockUsers.filter(u => u.status === 'active').length,
-    completedProjects: mockProjectTemplates.filter(p => p.status === 'published').length,
+    activeUsers: mockUsers.filter((u) => u.role === "student").length,
+    completedProjects: mockProjectTemplates.filter((p) => p.isPublished).length,
     pendingReviews: mockReviewTasks.filter(r => r.status === 'pending').length,
     avgCompletionTime: 18.4,
     monthlyGrowth: 12.3,

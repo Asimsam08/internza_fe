@@ -8,10 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import Image from "next/image"
-import { BookOpen, ArrowRight, CheckCircle2, Search, SlidersHorizontal } from "lucide-react"
+import { ArrowRight, CheckCircle2, Search, SlidersHorizontal, Loader2 } from "lucide-react"
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { mockProjectTemplates } from "@/lib/mockData"
+import { useProjectTemplates } from "@/lib/hooks/use-student"
 
 const categoryLabels: Record<string, string> = {
   ai_ml: "AI/ML",
@@ -22,6 +22,7 @@ const categoryLabels: Record<string, string> = {
 }
 
 export default function ProjectsPage() {
+  const { data: projectTemplates = [], isLoading } = useProjectTemplates()
   const [searchQuery, setSearchQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState("All")
   const [activeDifficulty, setActiveDifficulty] = useState("All")
@@ -30,13 +31,13 @@ export default function ProjectsPage() {
   const categories = [
     "All",
     ...Array.from(
-      new Set(mockProjectTemplates.map((t) => categoryLabels[t.category] ?? t.category))
+      new Set(projectTemplates.map((t) => categoryLabels[t.category] ?? t.category))
     ).sort(),
   ]
 
   const difficulties = ["All", "Beginner", "Intermediate", "Advanced"] as const
 
-  const filteredProjects = mockProjectTemplates
+  const filteredProjects = projectTemplates
     .filter((t) => t.isPublished)
     .filter((t) => {
       const matchesSearch =
@@ -50,16 +51,31 @@ export default function ProjectsPage() {
       return matchesSearch && matchesCategory && matchesDifficulty
     })
     .sort((a, b) => {
-      if (sort === "newest") return b.createdAt.getTime() - a.createdAt.getTime()
-      if (sort === "duration") return a.duration.localeCompare(b.duration)
+      if (sort === "newest") {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return bTime - aTime
+      }
+      if (sort === "duration") return a.duration - b.duration
       // recommended: stable by title for now (swap for analytics later)
       return a.title.localeCompare(b.title)
     })
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-sm text-secondary-600">Loading projects...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Info Banner */}
-      <Card className="border-0 shadow-lg bg-gradient-to-r from-primary/5 via-primary/[0.02] to-accent/5">
+      {/* <Card className="border-0 shadow-lg bg-gradient-to-r from-primary/5 via-primary/[0.02] to-accent/5">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 flex-shrink-0">
@@ -85,7 +101,7 @@ export default function ProjectsPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -197,7 +213,7 @@ export default function ProjectsPage() {
               >
                 <div className="relative aspect-video overflow-hidden bg-secondary-100">
                   <Image
-                    src={t.image}
+                    src={t.imageUrl || `https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=450&fit=crop`}
                     alt={t.title}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -207,20 +223,20 @@ export default function ProjectsPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-black/0 to-black/0" />
 
                   <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                    <Badge className="bg-white/90 text-secondary-800 border-0 text-xs font-semibold">
+                    <Badge className="bg-white/90 text-secondary-800 border-0 text-xs font-semibold transition-colors hover:bg-white/95 hover:text-secondary-900">
                       {categoryLabel}
                     </Badge>
-                    <Badge className="bg-white/90 text-secondary-800 border-0 text-xs font-semibold">
-                      {t.duration}
+                    <Badge className="bg-white/90 text-secondary-800 border-0 text-xs font-semibold transition-colors hover:bg-white/95 hover:text-secondary-900">
+                      {t.duration} weeks
                     </Badge>
                     <Badge
                       className={[
-                        "border-0 text-xs font-semibold",
+                        "border-0 text-xs font-semibold transition-colors",
                         t.difficulty === "Beginner"
-                          ? "bg-accent/90 text-white"
+                          ? "bg-accent/90 text-white hover:bg-accent"
                           : t.difficulty === "Intermediate"
-                            ? "bg-warning/90 text-white"
-                            : "bg-primary/90 text-white",
+                            ? "bg-warning/90 text-white hover:bg-warning"
+                            : "bg-primary/90 text-white hover:bg-primary",
                       ].join(" ")}
                     >
                       {t.difficulty}

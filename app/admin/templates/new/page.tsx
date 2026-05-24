@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, ArrowLeft, Save, X, Clock, Upload, Image as ImageIcon, Loader2 } from "lucide-react"
+import { Plus, Trash2, ArrowLeft, Save, X, Clock, Upload, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useCreateTemplate } from "@/lib/hooks/use-templates"
 import { toast } from "sonner"
@@ -154,9 +154,9 @@ export default function CreateTemplatePage() {
     }
 
     try {
-      const result = await createMutation.mutateAsync(templateData)
+      await createMutation.mutateAsync(templateData)
       router.push("/admin/templates")
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   }

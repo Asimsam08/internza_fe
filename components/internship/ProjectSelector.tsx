@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Clock, CheckCircle2, Sparkles, ArrowRight, Calendar, Plus, Minus } from "lucide-react"
+import { Clock, CheckCircle2, ArrowRight, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { DurationType, ProjectTemplate } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -189,9 +189,6 @@ export function ProjectSelector({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {getEligibleProjects(weekDuration).map((project) => {
                     const isSelected = selectedProjects.some(p => p.id === project.id)
-                    const isSlotFilled = selectedProjects.some(
-                      (p, i) => i === slotIndex && parseInt(p.duration) === weekDuration
-                    )
 
                     return (
                       <Card

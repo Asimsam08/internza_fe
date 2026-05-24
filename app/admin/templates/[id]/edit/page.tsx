@@ -231,9 +231,9 @@ export default function EditTemplatePage({ params }: { params: Promise<{ id: str
     }
 
     try {
-      const result = await updateMutation.mutateAsync({ id, data: templateData })
+      await updateMutation.mutateAsync({ id, data: templateData })
       router.push(`/admin/templates/${id}`)
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   }

@@ -5,21 +5,23 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  User,
+  User as UserIcon,
   Mail,
   Building2,
   GraduationCap,
   Save,
-  Camera
 } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useUpdateProfile, useCurrentUser } from "@/lib/hooks/use-auth"
+import { useUpdateProfile, useCurrentUser, type User } from "@/lib/hooks/use-auth"
 import { toast } from "sonner"
+import { ProfileImageSection } from "@/components/ui/profile-image-section"
 
 export default function SettingsPage() {
   const { data: user } = useCurrentUser()
   const updateProfile = useUpdateProfile()
   const [mounted, setMounted] = useState(false)
+
+  // const { mutate: updateProfilePicture, isPending } = useUpdateProfilePicture()
 
   // Initialize form data with user data from API
   const [formData, setFormData] = useState({
@@ -37,14 +39,18 @@ export default function SettingsPage() {
   // Update form data when user data is available
   useEffect(() => {
     if (user && mounted) {
+      const userData = user as User
       setFormData({
-        name: user?.studentProfile
-          ? `${user.studentProfile.firstName} ${user.studentProfile.lastName}`.trim()
-          : user?.name || "",
-        email: user?.email || "",
-        university: user?.studentProfile?.university || "",
-        gradYear: user?.studentProfile?.gradYear?.toString() || "",
-        bio: user?.studentProfile?.bio || "",
+        name: userData?.studentProfile
+          ? `${userData.studentProfile.firstName} ${userData.studentProfile.lastName}`.trim()
+          : "",
+        email: userData?.email || "",
+        university: userData?.studentProfile?.university || "",
+        gradYear: (
+          userData?.studentProfile?.gradYear ??
+          userData?.studentProfile?.graduationYear 
+        )?.toString() ?? "",
+        bio: userData?.studentProfile?.bio || "",
       })
     }
   }, [user, mounted])
@@ -61,13 +67,25 @@ export default function SettingsPage() {
       const firstName = nameParts[0] || ''
       const lastName = nameParts.slice(1).join(' ') || ''
 
-      await updateProfile.mutateAsync({
+      const payload: {
+        firstName: string
+        lastName: string
+        university?: string
+        gradYear?: number
+        bio?: string
+      } = {
         firstName,
         lastName,
-        university: formData.university || undefined,
-        gradYear: formData.gradYear ? parseInt(formData.gradYear) : undefined,
-        bio: formData.bio || undefined,
-      })
+      }
+
+      // Only include fields that have values
+      if (formData.university) payload.university = formData.university
+      if (formData.gradYear && formData.gradYear.trim() !== '') {
+        payload.gradYear = parseInt(formData.gradYear)
+      }
+      if (formData.bio) payload.bio = formData.bio
+
+      await updateProfile.mutateAsync(payload)
 
       toast.success("Profile updated successfully")
     } catch (error) {
@@ -75,6 +93,15 @@ export default function SettingsPage() {
       toast.error("Failed to update profile. Please try again.")
     }
   }
+
+  // file handler
+
+  // const handleFileChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
+  //   const file = e.target.files?.[0]
+  //  if (!file) return
+
+  // updateProfilePicture(file)
+  // }
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -88,14 +115,14 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <User className="h-4 w-4" />
+            <UserIcon className="h-4 w-4" />
             Profile Information
           </CardTitle>
           <CardDescription>Update your personal information and how others see you on the platform.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Avatar */}
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <div className="relative">
               <img
                 src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop"
@@ -110,14 +137,15 @@ export default function SettingsPage() {
               <p className="font-medium text-secondary-900">Profile Photo</p>
               <p className="text-sm text-secondary-500">JPG, PNG or GIF. Max 2MB.</p>
             </div>
-          </div>
+          </div> */}
+          <ProfileImageSection />
 
           {/* Form Fields */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary-400" />
+                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary-400" />
                 <Input 
                   id="name" 
                   value={formData.name}

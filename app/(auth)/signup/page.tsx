@@ -51,13 +51,16 @@ export default function SignupPage() {
 
     try {
       console.log('Attempting signup with:', { email, fullName })
-      const response: any = await api.post('/auth/student/signup', {
+      const response = await api.post<{ data?: { user?: Parameters<typeof login>[0] }; user?: Parameters<typeof login>[0] }>(
+        "/auth/student/signup",
+        {
         fullName,
         email,
         university,
         graduationYear,
         password,
-      })
+        },
+      )
       
       console.log('Signup response received:', response)
       
@@ -92,18 +95,17 @@ export default function SignupPage() {
         console.warn('Original role:', userData.role)
         router.push("/dashboard")
       }
-    } catch (err: any) {
-      console.error('Signup error details:', err)
-      console.error('Error message:', err.message)
-      
-      // Handle specific error messages from backend - use exact backend messages
-      if (err.message?.includes('already exists') || err.message?.includes('409')) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Signup failed"
+      console.error("Signup error details:", err)
+
+      if (message.includes("already exists") || message.includes("409")) {
         setError("User with this email already exists. Please login instead.")
-      } else if (err.message?.includes('network') || err.message?.includes('fetch') || err.message?.includes('ECONNREFUSED')) {
-        setError("Network error. Please check your connection and ensure backend is running.")
+      } else if (message.includes("network") || message.includes("fetch") || message.includes("ECONNREFUSED")) {
+        setError("Network error. Please check your network connection")
       } else {
         // Display the exact backend error message
-        setError(err.message || "Signup failed. Please try again.")
+        setError(message || "Signup failed. Please try again.")
       }
     } finally {
       setIsLoading(false)

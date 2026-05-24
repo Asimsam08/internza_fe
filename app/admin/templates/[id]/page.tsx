@@ -15,10 +15,8 @@ import {
   Calendar,
   Archive,
   Eye,
-  CheckCircle,
   AlertCircle,
   Loader2,
-  Image as ImageIcon,
   User
 } from "lucide-react"
 import { useTemplate, useDeleteTemplate, useArchiveTemplate, usePublishTemplate } from "@/lib/hooks/use-templates"
@@ -75,7 +73,7 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
     try {
       await deleteMutation.mutateAsync(template.id)
       router.push("/admin/templates")
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   }
@@ -84,7 +82,7 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
     try {
       await archiveMutation.mutateAsync(template.id)
       setArchiveDialog(false)
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   }
@@ -92,7 +90,7 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
   const handlePublish = async () => {
     try {
       await publishMutation.mutateAsync({ templateId: template.id })
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   }

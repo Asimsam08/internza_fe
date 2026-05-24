@@ -63,7 +63,8 @@ function getQueryClient() {
     if (!browserQueryClient) {
       browserQueryClient = makeQueryClientWithPersistence()
       // Store on window for access from authStore
-      ;(window as any).__REACT_QUERY_CLIENT__ = browserQueryClient
+      ;(window as Window & { __REACT_QUERY_CLIENT__?: typeof browserQueryClient }).__REACT_QUERY_CLIENT__ =
+        browserQueryClient
     }
     return browserQueryClient
   }

@@ -1,4 +1,5 @@
-"use client"
+// "use cli
+// ent"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"

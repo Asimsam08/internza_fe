@@ -61,8 +61,8 @@ Verify at: https://internza.io/verify/${cert.id}
     }
   }).filter(s => s.completedCount > 0)
 
-  const filteredStudents = eligibleStudents.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredStudents = eligibleStudents.filter(s =>
+    (s.name ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.email.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -171,7 +171,7 @@ Verify at: https://internza.io/verify/${cert.id}
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="font-medium text-primary">{student.name.charAt(0)}</span>
+                        <span className="font-medium text-primary">{(student.name ?? "?").charAt(0)}</span>
                       </div>
                       <div>
                         <p className="font-medium text-secondary-900">{student.name}</p>

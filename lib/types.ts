@@ -1,7 +1,7 @@
 // Types for Internza MVP
 // Focused on core flow: Templates → Enrollment → Tasks → Proof → Review → Certificate
 
-export type UserRole = "super_admin" | "reviewer" | "student"
+export type UserRole = "super_admin" | "college_admin" | "reviewer" | "student"
 
 export type TaskStatus = 
   | "locked" 
@@ -24,8 +24,17 @@ export interface User {
   email: string
   name?: string
   avatar?: string
+  profileImagePath?: string
   role: UserRole
   university?: string
+  collegeId?: string | null
+  isActive?: boolean
+  college?: {
+    id: string
+    name: string
+    domain?: string
+    logoUrl?: string | null
+  } | null
   createdAt: Date
   updatedAt: Date
   studentProfile?: {
@@ -33,6 +42,11 @@ export interface User {
     lastName: string
     university: string
     graduationYear: number
+    gradYear?: number
+    bio?: string
+    phone?: string
+    linkedIn?: string
+    github?: string
   }
   reviewerProfile?: {
     firstName: string
@@ -178,6 +192,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "review_submissions", "approve_submissions", "reject_submissions",
     "issue_certificate", "manage_users"
   ],
+  college_admin: ["issue_certificate", "manage_users"],
   reviewer: [
     "review_submissions", "approve_submissions", "reject_submissions"
   ],

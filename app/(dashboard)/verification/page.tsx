@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,26 +9,21 @@ import { Progress } from "@/components/ui/progress"
 import { useAuthStore } from "@/stores/authStore"
 import { mockCertificates, mockStudentProgress, mockProjectTemplates, mockUsers } from "@/lib/mockData"
 import { InternzaLogo } from "@/components/brand/InternzaLogo"
-import { 
-  Award, 
-  CheckCircle, 
-  Copy, 
-  ExternalLink, 
-  QrCode, 
-  Share2, 
-  Download, 
-  Shield, 
+import {
+  Award,
+  CheckCircle,
+  Copy,
+  ExternalLink,
+  Share2,
+  Download,
+  Shield,
   Clock,
   TrendingUp,
   FileText,
   CheckCircle2,
-  AlertCircle,
   Link as LinkIcon,
-  Sparkles,
-  Ribbon,
   Briefcase,
-  User,
-  Stamp
+  type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import html2canvas from "html2canvas"
@@ -72,14 +67,6 @@ function CertificatePreview({ cert }: { cert: CertificateData }) {
     year: "numeric"
   })
   
-  const completionDate = cert.completionDate 
-    ? new Date(cert.completionDate).toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric"
-      })
-    : issueDate
-
   // Show mentor or reviewer, whichever is available
   const signatureName = cert.mentorName || cert.reviewerName || cert.issuedByName
   const signatureRole = cert.mentorName ? "Mentor" : cert.reviewerName ? "Reviewer" : "Issuing Authority"
@@ -183,7 +170,13 @@ function CertificatePreview({ cert }: { cert: CertificateData }) {
 }
 
 // Progress Certificate Component
-function ProgressCertificate({ progress, project }: { progress: ProgressData; project: any }) {
+function ProgressCertificate({
+  progress,
+  project,
+}: {
+  progress: ProgressData
+  project: { title?: string; skills?: string[]; tasks?: unknown[] } | null
+}) {
   const tasksCompleted = progress.tasksCompleted.length
   const totalTasks = project?.tasks?.length || 0
   const progressPercent = totalTasks > 0 ? Math.round((tasksCompleted / totalTasks) * 100) : 0
@@ -282,7 +275,7 @@ function StatCard({
   trend, 
   className 
 }: { 
-  icon: any
+  icon: LucideIcon
   label: string
   value: string | number
   trend?: string
@@ -671,7 +664,7 @@ Verify at: https://internza.io/verify/${cert.id}
             
             {inProgressItems.map((item) => (
               <div key={item.progress.id} className="space-y-4">
-                <ProgressCertificate progress={item.progress} project={item.project} />
+                <ProgressCertificate progress={item.progress} project={item.project ?? null} />
                 
                 <Card className="border-0 shadow-sm">
                   <CardContent className="p-5">

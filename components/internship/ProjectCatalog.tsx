@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Clock, Award, BookOpen, Eye, Plus, ArrowRight, Zap } from "lucide-react"
+import { Clock, Award, BookOpen, Eye, Plus, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ProjectCatalogItem } from "@/lib/types"
 import { Button } from "@/components/ui/button"

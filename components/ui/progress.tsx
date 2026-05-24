@@ -25,11 +25,19 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
       brand: "bg-gradient-to-r from-primary via-primary to-accent",
     }
 
+    const trackVariants = {
+      default: "bg-muted",
+      success: "bg-emerald-100",
+      accent: "bg-accent/15",
+      brand: "bg-gradient-to-r from-primary/15 via-primary/10 to-accent/15",
+    }
+
     return (
       <div
         ref={ref}
         className={cn(
-          "relative w-full overflow-hidden rounded-full bg-muted",
+          "relative w-full overflow-hidden rounded-full",
+          trackVariants[variant],
           sizes[size],
           className
         )}

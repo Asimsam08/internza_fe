@@ -9,7 +9,6 @@ import {
   PlatformStats,
   DurationOption,
   InternshipPlan,
-  ProjectBlock,
   DurationProgress,
   ProjectCatalogItem,
 } from "./types"
