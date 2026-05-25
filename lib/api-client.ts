@@ -3,12 +3,12 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/a
 let isRefreshing = false
 let refreshSubscribers: ((token: string) => void)[] = []
 
-interface ApiErrorResponse {
-  statusCode: number
-  message: string
-  timestamp: string
-  path: string
-}
+// interface ApiErrorResponse {
+//   statusCode: number
+//   message: string
+//   timestamp: string
+//   path: string
+// }
 
 // Custom error class to preserve API error details
 export class ApiError extends Error {
