@@ -61,7 +61,7 @@ type TabType = "students" | "tasks"
 
 export default function ProjectDetailPage() {
   const params = useParams()
-  const projectId = params.id as string
+  const projectId = params?.id as string
   const [activeTab, setActiveTab] = useState<TabType>("tasks")
 
   console.log('Component mounted, projectId:', projectId)

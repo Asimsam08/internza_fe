@@ -16,7 +16,7 @@ import { MagicLinkFallbackPanel } from "@/components/shared/MagicLinkFallbackPan
 import { Loader2, Mail, Shield, UserCheck } from "lucide-react"
 
 export default function CollegeTeamPage() {
-  const collegeId = useParams().collegeId as string
+  const collegeId = useParams()?.collegeId as string
   const { data: team, isLoading } = useCollegeTeam(collegeId)
   const invite = useInviteReviewer(collegeId)
   const [email, setEmail] = useState("")

@@ -13,8 +13,8 @@ import { getHomeRouteForRole, getReviewerWorkspaceRoute } from "@/lib/auth-route
 export default function InviteLandingPage() {
   const params = useParams()
   const router = useRouter()
-  const collegeId = params.collegeId as string
-  const token = params.token as string
+  const collegeId = params?.collegeId as string
+  const token = params?.token as string
   const login = useAuthStore((s) => s.login)
   type InvitePreview = {
     email: string

@@ -6,7 +6,7 @@ import { useCollegeDashboard } from "@/lib/hooks/use-college-admin"
 import { Loader2 } from "lucide-react"
 
 export default function CollegeAdminLayout({ children }: { children: React.ReactNode }) {
-  const collegeId = useParams().collegeId as string
+  const collegeId = useParams()?.collegeId as string
   const { data: dashboard, isLoading } = useCollegeDashboard(collegeId)
 
   if (isLoading) {

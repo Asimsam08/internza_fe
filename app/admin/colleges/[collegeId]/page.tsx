@@ -11,7 +11,7 @@ import { CohortsTable, type CohortRow } from "@/components/college/CohortsTable"
 import { CollegeLogoUpload } from "@/components/college/college-logo-upload"
 
 export default function CollegeAdminDashboardPage() {
-  const collegeId = useParams().collegeId as string
+  const collegeId = useParams()?.collegeId as string
   const { data: dashboard, isLoading: dashLoading, isError: dashError } = useCollegeDashboard(collegeId)
   const { data: cohorts = [], isLoading: cohortsLoading } = useCollegeCohorts(collegeId)
   const [wizardOpen, setWizardOpen] = useState(false)
