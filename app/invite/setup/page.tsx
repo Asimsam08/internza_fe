@@ -17,9 +17,9 @@ function SetupForm() {
   const router = useRouter()
   const login = useAuthStore((s) => s.login)
   const queryClient = useQueryClient()
-  const collegeId = search.get("collegeId") ?? ""
-  const token = search.get("token") ?? ""
-  const email = search.get("email") ?? ""
+  const collegeId = search?.get("collegeId") ?? ""
+  const token = search?.get("token") ?? ""
+  const email = search?.get("email") ?? ""
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")

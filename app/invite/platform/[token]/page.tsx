@@ -13,7 +13,7 @@ import { getReviewerWorkspaceRoute } from "@/lib/auth-routes"
 export default function PlatformInviteLandingPage() {
   const params = useParams()
   const router = useRouter()
-  const token = params.token as string
+  const token = params?.token as string
   const login = useAuthStore((s) => s.login)
 
   type InvitePreview = {
