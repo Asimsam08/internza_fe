@@ -20,7 +20,7 @@ import {
 
 export default function PublicVerifyCertificatePage() {
   const params = useParams()
-  const verificationId = typeof params.id === "string" ? params.id : ""
+  const verificationId = typeof params?.id === "string" ? params.id : ""
   const { data, isLoading, isError, error } = useVerifyCertificate(verificationId)
 
   const verifyUrl = verificationId ? buildPublicVerificationUrl(verificationId) : ""
