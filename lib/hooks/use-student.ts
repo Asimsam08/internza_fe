@@ -164,6 +164,17 @@ export interface StudentDashboard {
   warnings?: DashboardWarning[]
   nextAction: string
   taskTimeline: TaskTimeline[]
+  certificate?: {
+    issued?: boolean
+    eligible?: boolean
+    planId?: string
+    verificationId?: string
+    certificateId?: string
+    downloadPath?: string
+    previewPath?: string
+    verifyPath?: string
+    variant?: 'cohort' | 'self-paced'
+  } | null
 }
 
 type StudentDashboardApiData =

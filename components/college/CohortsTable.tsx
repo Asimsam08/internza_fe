@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -9,10 +10,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Download, KeyRound, MoreHorizontal, Rocket, Users } from "lucide-react"
+import { Download, KeyRound, Loader2, MoreHorizontal, Rocket, Users } from "lucide-react"
+import { toast } from "sonner"
 import { CohortLaunchDialog } from "./CohortLaunchDialog"
 import {
-  getCertificatesDownloadUrl,
+  downloadCertificatesZip,
   useIssueStudentCredentials,
   type StudentCredential,
 } from "@/lib/hooks/use-college-admin"
@@ -71,6 +73,23 @@ export function CohortsTable({
     loginUrl: string
   } | null>(null)
   const issueCredentials = useIssueStudentCredentials(collegeId)
+  const [certDownloadId, setCertDownloadId] = useState<string | null>(null)
+
+  const handleDownloadCertificates = async (cohort: CohortRow) => {
+    setCertDownloadId(cohort.id)
+    try {
+      await downloadCertificatesZip(
+        collegeId,
+        cohort.id,
+        `${cohort.name.replace(/\s+/g, "_")}_certificates.zip`,
+      )
+      toast.success("Certificate ZIP downloaded")
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to download certificates")
+    } finally {
+      setCertDownloadId(null)
+    }
+  }
 
   const handleIssueLogins = async (cohort: CohortRow) => {
     const result = await issueCredentials.mutateAsync(cohort.id)
@@ -105,7 +124,12 @@ export function CohortsTable({
             {cohorts.map((c) => (
               <tr key={c.id} className="border-b border-secondary-100 last:border-0 hover:bg-secondary-50/50">
                 <td className="px-4 py-4">
-                  <p className="font-medium text-secondary-900">{c.name}</p>
+                  <Link
+                    href={`/admin/colleges/${collegeId}/cohorts/${c.id}`}
+                    className="font-medium text-secondary-900 hover:text-primary hover:underline"
+                  >
+                    {c.name}
+                  </Link>
                   {c.startDate && c.endDate ? (
                     <p className="text-xs text-secondary-500 mt-0.5">
                       {new Date(c.startDate).toLocaleDateString()} –{" "}
@@ -137,14 +161,17 @@ export function CohortsTable({
                           <KeyRound className="h-4 w-4 mr-2" />
                           Resend invites & show links
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <a
-                            href={getCertificatesDownloadUrl(collegeId, c.id)}
-                            className="flex items-center gap-2 cursor-pointer"
-                          >
+                        <DropdownMenuItem
+                          onClick={() => handleDownloadCertificates(c)}
+                          disabled={certDownloadId === c.id}
+                          className="gap-2 cursor-pointer"
+                        >
+                          {certDownloadId === c.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
                             <Download className="h-4 w-4" />
-                            Download certificates
-                          </a>
+                          )}
+                          Download certificates
                         </DropdownMenuItem>
                         {c.studentsTotal === 0 && (
                           <DropdownMenuItem onClick={() => setLaunchTarget(c)}>

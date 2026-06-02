@@ -52,7 +52,7 @@ export function InternshipPlanSwitcher({
         role="group"
         aria-label="Switch internship plan"
       >
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0">
           {viewingCohort && cohortLogo ? (
             <CollegeLogoMark
               logoUrl={cohortLogo}
@@ -126,7 +126,7 @@ export function InternshipPlanSwitcher({
           className,
         )}
       >
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-3.5 min-w-0">
           <CollegeLogoMark
             logoUrl={cohortPlan.collegeLogoUrl ?? cohortBranding?.collegeLogoUrl}
             collegeName={cohortBranding?.collegeName}
