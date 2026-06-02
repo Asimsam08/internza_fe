@@ -38,7 +38,9 @@ export default function VerificationPage() {
       : "Internship Program"
   const studentDisplayName =
     user?.name?.trim() ||
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
+    (user?.studentProfile
+      ? `${user.studentProfile.firstName} ${user.studentProfile.lastName}`.trim()
+      : "") ||
     "Student"
 
   const isCohort = dashboard && "activePlanType" in dashboard && dashboard.activePlanType === "cohort"
