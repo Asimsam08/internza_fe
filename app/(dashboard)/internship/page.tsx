@@ -519,7 +519,7 @@ export default function InternshipPage() {
               ))}
 
               {/* Continue to review */}
-              <div className="sticky bottom-0 z-10 -mx-1 border-t border-gray-200 bg-white/95 p-4 pb-6 backdrop-blur-md sm:mx-0">
+              <div className="sticky bottom-0 z-10 rounded-t-2xl border border-b-0 border-gray-200 bg-white p-4 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.08)]">
                 <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
                     <div
@@ -835,7 +835,7 @@ export default function InternshipPage() {
           </div>
         )}
 
-        <div className="sticky bottom-0 z-10 -mx-1 mt-2 border-t border-gray-200 bg-white/95 p-4 pb-6 backdrop-blur-md sm:mx-0">
+        <div className="sticky bottom-0 z-10 mt-2 rounded-t-2xl border border-b-0 border-gray-200 bg-white p-4 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.08)]">
           <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-secondary-600">
               {selectedDuration

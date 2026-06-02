@@ -2,6 +2,11 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api, apiUpload } from "@/lib/api-client"
+import {
+  fetchPdfBlob,
+  getCertificatesBulkDownloadUrl,
+  triggerBlobDownload,
+} from "@/lib/certificates-api"
 import { toast } from "sonner"
 
 export interface CollegeTeamAdmin {
@@ -90,6 +95,84 @@ export function useCollegeCohorts(collegeId: string) {
       return res.data
     },
     enabled: !!collegeId,
+  })
+}
+
+export interface CohortDetail {
+  id: string
+  name: string
+  status: string
+  startDate: string
+  endDate: string
+  studentsTotal: number
+  studentsCompleted: number
+  template: {
+    id: string
+    title: string
+    description: string
+    duration: number
+    difficulty: string
+    category: string
+    skills: string[]
+    techStack: string[]
+    templateTasks: {
+      id: string
+      title: string
+      description: string
+      order: number
+      durationDays: number
+    }[]
+  }
+  reviewers: { id: string; name: string; email: string }[]
+}
+
+export interface CohortStudent {
+  id: string
+  userId: string
+  email: string
+  firstName: string
+  lastName: string
+  university: string | null
+  externalStudentId: string | null
+  plan: {
+    id: string
+    status: string
+    isCompleted: boolean
+    completedWeeks: number
+    totalWeeks: number
+    startedAt: string
+    completedAt: string | null
+  } | null
+}
+
+export function useCohortDetail(collegeId: string, cohortId: string) {
+  return useQuery({
+    queryKey: ["college-admin", collegeId, "cohorts", cohortId],
+    queryFn: async () => {
+      const res = await api.get<{ data: CohortDetail }>(
+        `/admin/colleges/${collegeId}/cohorts/${cohortId}`,
+      )
+      return res.data
+    },
+    enabled: !!collegeId && !!cohortId,
+  })
+}
+
+export function useCohortStudents(
+  collegeId: string,
+  cohortId: string,
+  search?: string,
+) {
+  return useQuery({
+    queryKey: ["college-admin", collegeId, "cohorts", cohortId, "students", search ?? ""],
+    queryFn: async () => {
+      const params = search?.trim() ? `?search=${encodeURIComponent(search.trim())}` : ""
+      const res = await api.get<{ data: CohortStudent[] }>(
+        `/admin/colleges/${collegeId}/cohorts/${cohortId}/students${params}`,
+      )
+      return res.data ?? []
+    },
+    enabled: !!collegeId && !!cohortId,
   })
 }
 
@@ -227,6 +310,15 @@ export function useInviteReviewer(collegeId: string) {
 }
 
 export function getCertificatesDownloadUrl(collegeId: string, cohortId: string) {
-  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api/v1"
-  return `${base}/admin/colleges/${collegeId}/cohorts/${cohortId}/certificates`
+  return getCertificatesBulkDownloadUrl(collegeId, cohortId)
+}
+
+export async function downloadCertificatesZip(
+  collegeId: string,
+  cohortId: string,
+  filename: string,
+) {
+  const url = getCertificatesBulkDownloadUrl(collegeId, cohortId)
+  const blob = await fetchPdfBlob(url, { credentials: "include" })
+  triggerBlobDownload(blob, filename)
 }

@@ -30,7 +30,7 @@ export function CollegeLogoMark({
   return (
     <div
       className={cn(
-        "relative shrink-0 overflow-hidden rounded-xl border border-secondary-200/80 bg-white shadow-sm",
+        "relative shrink-0 overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.04)]",
         box,
         className,
       )}
@@ -41,12 +41,12 @@ export function CollegeLogoMark({
           alt={`${collegeName} logo`}
           width={px}
           height={px}
-          className="h-full w-full object-contain p-1.5"
+          className="h-full w-full object-cover"
           unoptimized
         />
       ) : (
         <span
-          className="flex h-full w-full items-center justify-center bg-secondary-50 text-secondary-400"
+          className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary-50 to-secondary-100 text-secondary-400"
           aria-hidden
         >
           <Building2 className={size === "sm" ? "h-5 w-5" : "h-7 w-7"} />
