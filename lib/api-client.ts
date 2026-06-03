@@ -181,7 +181,17 @@ export async function apiClient<T>(
 
   try {
     const data = await response.json()
-    console.log(`API Response [${endpoint}]:`, data)
+    if (process.env.NODE_ENV === 'development') {
+      const payload =
+        typeof data === 'object' && data !== null && 'data' in data
+          ? (data as { data: unknown }).data
+          : data
+      const size =
+        payload && typeof payload === 'object'
+          ? JSON.stringify(payload).length
+          : 0
+      console.log(`API [${endpoint}] ok${size ? ` · ~${Math.round(size / 1024)}KB` : ''}`)
+    }
     return data
   } catch {
     throw new Error('Invalid response from server')

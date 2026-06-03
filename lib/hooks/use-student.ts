@@ -4,7 +4,7 @@ import { api, type ApiResponse } from '@/lib/api-client'
 import { toast } from 'sonner'
 import { getErrorMessage } from '@/lib/api-client'
 import type { StudentCohortContext } from '@/lib/cohort-labels'
-import { useActivePlanStore } from '@/stores/activePlanStore'
+import { useActivePlanStore, useActivePlanHydrated } from '@/stores/activePlanStore'
 
 export type { StudentCohortContext } from '@/lib/cohort-labels'
 
@@ -281,17 +281,18 @@ export function useEnrollInPlan() {
   })
 }
 
+const studentDashboardQueryKey = ['student', 'dashboard'] as const
+
 export function useStudentDashboard() {
-  const activePlanId = useActivePlanStore((s) => s.activePlanId)
+  const planHydrated = useActivePlanHydrated()
   const setActivePlanId = useActivePlanStore((s) => s.setActivePlanId)
 
   const query = useQuery({
-    queryKey: ['student', 'dashboard', activePlanId ?? 'default'],
+    queryKey: studentDashboardQueryKey,
     queryFn: async () => {
       try {
-        const qs = activePlanId
-          ? `?planId=${encodeURIComponent(activePlanId)}`
-          : ''
+        const planId = useActivePlanStore.getState().activePlanId
+        const qs = planId ? `?planId=${encodeURIComponent(planId)}` : ''
         const response = await api.get<ApiResponse<StudentDashboardApiData>>(
           `/students/dashboard${qs}`,
         )
@@ -307,6 +308,10 @@ export function useStudentDashboard() {
         return null
       }
     },
+    enabled: planHydrated,
+    staleTime: 60_000,
+    gcTime: 10 * 60_000,
+    placeholderData: (previous) => previous,
     retry: 1,
     retryDelay: 1000,
   })
@@ -322,7 +327,7 @@ export function useStudentDashboard() {
     if (validStored) return
 
     const serverId = dash.activePlanId ?? dash.planId
-    if (serverId) {
+    if (serverId && serverId !== stored) {
       setActivePlanId(serverId)
     }
   }, [query.data, setActivePlanId])

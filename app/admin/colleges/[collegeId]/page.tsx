@@ -12,7 +12,12 @@ import { CollegeLogoUpload } from "@/components/college/college-logo-upload"
 
 export default function CollegeAdminDashboardPage() {
   const collegeId = useParams()?.collegeId as string
-  const { data: dashboard, isLoading: dashLoading, isError: dashError } = useCollegeDashboard(collegeId)
+  const {
+    data: dashboard,
+    isLoading: dashLoading,
+    isError: dashError,
+    isFetching: dashFetching,
+  } = useCollegeDashboard(collegeId)
   const { data: cohorts = [], isLoading: cohortsLoading } = useCollegeCohorts(collegeId)
   const [wizardOpen, setWizardOpen] = useState(false)
 
@@ -26,7 +31,7 @@ export default function CollegeAdminDashboardPage() {
 
   const draftCount = (cohorts as CohortRow[]).filter((c) => c.needsLaunch).length
 
-  if (dashLoading) {
+  if (dashLoading && !dashboard) {
     return <Loader2 className="h-8 w-8 animate-spin mx-auto mt-12" />
   }
 
@@ -40,6 +45,12 @@ export default function CollegeAdminDashboardPage() {
 
   return (
     <section className="space-y-8 max-w-6xl">
+      {dashFetching && dashboard ? (
+        <p className="text-xs text-secondary-500" aria-live="polite">
+          Refreshing overview…
+        </p>
+      ) : null}
+
       <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
         <article>
           <h2 className="text-2xl font-bold text-secondary-900 tracking-tight">Overview</h2>
