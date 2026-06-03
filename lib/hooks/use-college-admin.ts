@@ -72,6 +72,9 @@ export function useCollegeDashboard(collegeId: string) {
       return res.data
     },
     enabled: !!collegeId,
+    staleTime: 60_000,
+    gcTime: 10 * 60_000,
+    placeholderData: (previous) => previous,
   })
 }
 
@@ -95,6 +98,8 @@ export function useCollegeCohorts(collegeId: string) {
       return res.data
     },
     enabled: !!collegeId,
+    staleTime: 30_000,
+    placeholderData: (previous) => previous,
   })
 }
 

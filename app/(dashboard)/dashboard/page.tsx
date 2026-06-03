@@ -14,6 +14,7 @@ import {
   isCohortStudent,
 } from "@/lib/cohort-labels"
 import { useCurrentUser } from "@/lib/hooks/use-auth"
+import { useAuthStore } from "@/stores/authStore"
 import { cn } from "@/lib/utils"
 import {
   Loader2,
@@ -37,14 +38,20 @@ import {
 } from "lucide-react"
 
 export default function DashboardPage() {
-  const { data: user, isLoading: userLoading } = useCurrentUser()
+  const { data: user } = useCurrentUser()
+  const cachedUser = useAuthStore((s) => s.user)
   const router = useRouter()
-  const { data: dashboard, isLoading } = useStudentDashboard()
+  const { data: dashboard, isLoading, isFetching } = useStudentDashboard()
 
-  // Extract user name (first name only)
-  const userName = user?.studentProfile?.firstName || user?.name?.split(" ")[0] || "Student"
+  const profileUser = user ?? cachedUser
+  const userName =
+    profileUser?.studentProfile?.firstName ||
+    profileUser?.name?.split(" ")[0] ||
+    "Student"
 
-  if (isLoading || userLoading) {
+  const showInitialLoader = isLoading && !dashboard
+
+  if (showInitialLoader) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -210,6 +217,11 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {isFetching && dashboard ? (
+        <p className="text-xs text-secondary-500" aria-live="polite">
+          Refreshing…
+        </p>
+      ) : null}
       {/* Warning Banner */}
       {/* {warnings && warnings.length > 0 && (
         <div className={`p-4 rounded-xl border flex items-center gap-3 ${
@@ -248,11 +260,11 @@ export default function DashboardPage() {
               <div>
                 <h1 className="text-3xl font-bold">Hello, {userName}! 👋</h1>
                 <p className="text-white/80 text-lg mt-1">
-                  {user?.studentProfile?.university || "Student"}
-                  {user?.studentProfile?.gradYear
-                    ? ` • Class of ${user.studentProfile.gradYear}`
-                    : user?.studentProfile?.graduationYear
-                      ? ` • Class of ${user.studentProfile.graduationYear}`
+                  {profileUser?.studentProfile?.university || "Student"}
+                  {profileUser?.studentProfile?.gradYear
+                    ? ` • Class of ${profileUser.studentProfile.gradYear}`
+                    : profileUser?.studentProfile?.graduationYear
+                      ? ` • Class of ${profileUser.studentProfile.graduationYear}`
                       : ""}
                 </p>
               </div>
