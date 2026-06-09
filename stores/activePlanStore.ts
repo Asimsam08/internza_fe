@@ -21,13 +21,20 @@ export const useActivePlanStore = create<ActivePlanState>()(
 
 /** Wait for persisted active plan id before the first dashboard fetch. */
 export function useActivePlanHydrated() {
-  const [hydrated, setHydrated] = useState(() =>
-    useActivePlanStore.persist.hasHydrated(),
-  )
+  const [hydrated, setHydrated] = useState(() => {
+    if (typeof window === "undefined") return false
+    return useActivePlanStore.persist?.hasHydrated() ?? false
+  })
 
   useEffect(() => {
-    const unsub = useActivePlanStore.persist.onFinishHydration(() => setHydrated(true))
-    setHydrated(useActivePlanStore.persist.hasHydrated())
+    const persist = useActivePlanStore.persist
+    if (!persist) {
+      setHydrated(true)
+      return
+    }
+
+    const unsub = persist.onFinishHydration(() => setHydrated(true))
+    setHydrated(persist.hasHydrated())
     return unsub
   }, [])
 
