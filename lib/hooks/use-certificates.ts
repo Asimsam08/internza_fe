@@ -46,6 +46,8 @@ export interface VerifyCertificateResult {
   studentName: string
   programName: string
   reviewerNames?: string
+  durationLabel?: string
+  skills?: string[]
   issuedAt: string
   variant: 'cohort' | 'self-paced'
   collegeName?: string

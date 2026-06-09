@@ -11,10 +11,12 @@ import { buildPublicVerificationUrl } from "@/lib/certificate-url"
 import {
   AlertCircle,
   CheckCircle2,
+  Clock,
   ExternalLink,
   GraduationCap,
   Loader2,
   Shield,
+  Sparkles,
   XCircle,
 } from "lucide-react"
 
@@ -148,6 +150,15 @@ export default function PublicVerifyCertificatePage() {
                     })}
                   </p>
                 </div>
+                {data.durationLabel ? (
+                  <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
+                    <p className="text-xs text-slate-500 mb-1 flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      Duration
+                    </p>
+                    <p className="font-medium capitalize">{data.durationLabel}</p>
+                  </div>
+                ) : null}
                 {data.collegeName ? (
                   <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
                     <p className="text-xs text-slate-500 mb-1 flex items-center gap-1">
@@ -166,6 +177,21 @@ export default function PublicVerifyCertificatePage() {
                       {data.variant === "cohort" ? "Reviewed by" : "Mentored by"}
                     </p>
                     <p className="font-medium">{data.reviewerNames}</p>
+                  </div>
+                ) : null}
+                {data.skills && data.skills.length > 0 ? (
+                  <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
+                    <p className="text-xs text-slate-500 mb-2 flex items-center gap-1">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Skills demonstrated
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {data.skills.map((skill) => (
+                        <Badge key={skill} variant="outline" className="bg-white font-normal">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
               </div>

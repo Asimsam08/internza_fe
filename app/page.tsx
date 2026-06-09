@@ -352,7 +352,7 @@ export default function LandingPage() {
                     Share a single link with recruiters instead of sending a resume.
                   </div>
                   <div className="mt-4">
-                    <Link href="/verify/demo">
+                    <Link href="/verify/DEMO-SELF-2026">
                       <Button variant="outline" className="border-white/20 bg-white/10 text-white hover:bg-white/20">
                         View demo profile
                       </Button>
@@ -391,7 +391,7 @@ export default function LandingPage() {
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Link href="/verify/demo">
+                    <Link href="/verify/DEMO-SELF-2026">
                       <Button
                         size="lg"
                         variant="outline"
