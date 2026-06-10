@@ -18,6 +18,7 @@ import {
 import Link from "next/link"
 import { SiteHeader } from "@/components/marketing/SiteHeader"
 import { SiteFooter } from "@/components/marketing/SiteFooter"
+import { WaitlistSection } from "@/components/marketing/WaitlistSection"
 
 const metrics = [
   { label: "Tasks shipped", value: "Proof-first" },
@@ -54,9 +55,9 @@ export default function LandingPage() {
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link href="/signup" className="w-full sm:w-auto">
+                <Link href="#waitlist" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full gap-2">
-                    Start your internship
+                    Join waitlist
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -194,9 +195,9 @@ export default function LandingPage() {
                 One workflow, three experiences—each with the right controls and visibility.
               </p>
             </div>
-            <Link href="/signup">
+            <Link href="#waitlist">
               <Button variant="outline" className="gap-2">
-                Start now <ArrowRight className="h-4 w-4" />
+                Join waitlist <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>
@@ -385,9 +386,9 @@ export default function LandingPage() {
                     a clean review workflow.
                   </p>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <Link href="/signup">
+                    <Link href="#waitlist">
                       <Button size="lg" variant="accent" className="w-full sm:w-auto gap-2">
-                        Get started
+                        Join waitlist
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     </Link>
@@ -424,6 +425,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <WaitlistSection />
 
       <SiteFooter />
     </div>

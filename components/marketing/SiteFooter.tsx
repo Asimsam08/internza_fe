@@ -34,14 +34,11 @@ export function SiteFooter() {
 
           <div>
             <div className="text-xs font-extrabold uppercase tracking-wider text-secondary-900">
-              Account
+              Get involved
             </div>
             <div className="mt-4 grid gap-2 text-sm font-semibold text-secondary-600">
-              <Link href="/login" className="hover:text-primary">
-                Sign in
-              </Link>
-              <Link href="/signup" className="hover:text-primary">
-                Get started
+              <Link href="#waitlist" className="hover:text-primary">
+                Join waitlist
               </Link>
               <Link href="/support" className="hover:text-primary">
                 Support

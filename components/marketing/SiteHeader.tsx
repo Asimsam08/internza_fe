@@ -42,14 +42,9 @@ export function SiteHeader({ className }: { className?: string }) {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Link href="/login">
-            <Button variant="ghost" size="sm">
-              Sign in
-            </Button>
-          </Link>
-          <Link href="/signup">
+          <Link href="#waitlist">
             <Button variant="primary" size="sm">
-              Get started
+              Join waitlist
             </Button>
           </Link>
         </div>
@@ -80,13 +75,8 @@ export function SiteHeader({ className }: { className?: string }) {
                 </Link>
               ))}
               <div className="my-2 border-t border-secondary-100" />
-              <Link href="/login" onClick={() => setOpen(false)}>
-                <Button variant="outline" className="w-full">
-                  Sign in
-                </Button>
-              </Link>
-              <Link href="/signup" onClick={() => setOpen(false)}>
-                <Button className="w-full">Get started</Button>
+              <Link href="#waitlist" onClick={() => setOpen(false)}>
+                <Button className="w-full">Join waitlist</Button>
               </Link>
             </div>
           </div>

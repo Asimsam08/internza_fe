@@ -5,9 +5,12 @@ import { usePathname } from "next/navigation"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import { InternzaLogo } from "@/components/brand/InternzaLogo"
 import { cn } from "@/lib/utils"
-import { Building2 } from "lucide-react"
+import { Building2, Mail } from "lucide-react"
 
-const nav = [{ label: "Colleges", href: "/super-admin/colleges", icon: Building2 }]
+const nav = [
+  { label: "Colleges", href: "/super-admin/colleges", icon: Building2 },
+  { label: "Waitlist", href: "/admin/waitlist", icon: Mail },
+]
 
 export default function SuperAdminPlatformLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
