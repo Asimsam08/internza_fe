@@ -25,11 +25,13 @@ import {
   ChevronRight,
   FileText,
   Building2,
+  Mail,
 } from "lucide-react"
 
 const adminNav = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Colleges", href: "/super-admin/colleges", icon: Building2 },
+  { label: "Waitlist", href: "/admin/waitlist", icon: Mail },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Project Templates", href: "/admin/templates", icon: FileText },
   { label: "Reviews", href: "/admin/reviews", icon: FileCheck },
