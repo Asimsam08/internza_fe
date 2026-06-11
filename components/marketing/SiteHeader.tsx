@@ -9,9 +9,10 @@ import { cn } from "@/lib/utils"
 import { InternzaLogo } from "@/components/brand/InternzaLogo"
 
 const nav = [
+  { href: "#audiences", label: "Who it's for" },
+  { href: "#product", label: "Platform" },
   { href: "#how", label: "How it works" },
-  { href: "#roles", label: "Roles" },
-  { href: "#proof", label: "Proof system" },
+  { href: "#proof", label: "Verification" },
 ]
 
 export function SiteHeader({ className }: { className?: string }) {
@@ -20,11 +21,11 @@ export function SiteHeader({ className }: { className?: string }) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 border-b border-secondary-100 bg-white/70 backdrop-blur-md",
+        "sticky top-0 z-50 border-b border-secondary-100/80 bg-white/80 backdrop-blur-md",
         className
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 xs:px-4 sm:h-16 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2">
           <InternzaLogo />
         </Link>
@@ -43,7 +44,7 @@ export function SiteHeader({ className }: { className?: string }) {
 
         <div className="hidden items-center gap-2 md:flex">
           <Link href="#waitlist">
-            <Button variant="primary" size="sm">
+            <Button variant="gradient" size="sm">
               Join waitlist
             </Button>
           </Link>
@@ -76,7 +77,9 @@ export function SiteHeader({ className }: { className?: string }) {
               ))}
               <div className="my-2 border-t border-secondary-100" />
               <Link href="#waitlist" onClick={() => setOpen(false)}>
-                <Button className="w-full">Join waitlist</Button>
+                <Button variant="gradient" className="w-full">
+                  Join waitlist
+                </Button>
               </Link>
             </div>
           </div>
@@ -85,4 +88,3 @@ export function SiteHeader({ className }: { className?: string }) {
     </header>
   )
 }
-
