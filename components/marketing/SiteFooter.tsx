@@ -18,7 +18,7 @@ const startLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="footer-gradient-bg relative overflow-hidden border-t border-secondary-100/60">
+    <footer className="footer-gradient-bg relative overflow-hidden border-t border-secondary-100/60 pb-[env(safe-area-inset-bottom,0px)]">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-40 top-8 h-72 w-72 rounded-full bg-primary/[0.04] blur-3xl" />
         <div className="absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-accent/[0.07] blur-3xl" />
@@ -26,7 +26,7 @@ export function SiteFooter() {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-3 xs:px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-10 pb-[clamp(4.5rem,18vw,13rem)] pt-12 xs:gap-12 xs:pb-[clamp(5.5rem,20vw,13rem)] xs:pt-14 sm:pb-[clamp(7rem,22vw,13rem)] lg:grid-cols-[1.2fr_1fr_1fr] lg:gap-10 lg:pt-16">
+        <div className="grid gap-10 pb-[clamp(5.25rem,21vw,13rem)] pt-12 xs:gap-12 xs:pb-[clamp(6rem,22vw,13rem)] xs:pt-14 sm:pb-[clamp(7rem,22vw,13rem)] lg:grid-cols-[1.2fr_1fr_1fr] lg:gap-10 lg:pt-16">
           <div className="lg:pr-8">
             <div className="flex items-center gap-3">
               <div className="relative h-10 w-10 shrink-0">

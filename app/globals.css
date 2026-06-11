@@ -147,27 +147,26 @@
   .footer-watermark {
     @apply pointer-events-none absolute inset-x-0 bottom-0 z-0 flex w-full items-end justify-center overflow-hidden font-display font-extrabold leading-[0.82] tracking-tighter;
     height: clamp(120px, 32vw, 280px);
-    padding-bottom: clamp(0.25rem, 1.5vw, 0.75rem);
+    padding-bottom: max(clamp(0.25rem, 1.5vw, 0.75rem), env(safe-area-inset-bottom, 0px));
     font-size: clamp(6rem, 24vw, 18rem);
     letter-spacing: -0.045em;
   }
 
   @media (max-width: 479px) {
     .footer-watermark {
-      height: clamp(52px, 16vw, 80px);
-      padding-bottom: 0.125rem;
-      font-size: clamp(2.25rem, 13.5vw, 3.5rem);
-      letter-spacing: -0.065em;
-      transform: scale(min(1, calc(100vw / 22rem)));
-      transform-origin: bottom center;
+      height: clamp(72px, 20vw, 108px);
+      padding-bottom: max(0.625rem, env(safe-area-inset-bottom, 0px));
+      font-size: clamp(3.5rem, 19vw, 5.25rem);
+      letter-spacing: -0.06em;
     }
   }
 
   @media (min-width: 480px) and (max-width: 639px) {
     .footer-watermark {
-      height: clamp(72px, 20vw, 110px);
-      font-size: clamp(3rem, 16vw, 4.75rem);
-      letter-spacing: -0.055em;
+      height: clamp(88px, 22vw, 128px);
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+      font-size: clamp(4.25rem, 18vw, 6.25rem);
+      letter-spacing: -0.05em;
     }
   }
 

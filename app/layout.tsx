@@ -10,6 +10,12 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/icon.svg" }],
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
