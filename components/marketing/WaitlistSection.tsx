@@ -72,18 +72,18 @@ export function WaitlistSection({ className }: { className?: string }) {
 
   return (
     <section id="waitlist" className={cn("scroll-mt-20 bg-background", className)}>
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+      <div className="mx-auto max-w-7xl px-3 py-12 xs:px-4 xs:py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         {/* Gradient border frame — visually distinct from the solid navy CTA above */}
-        <div className="relative rounded-[2rem] p-[1px] shadow-[0_24px_80px_-20px_rgba(26,43,75,0.35)]">
+        <div className="relative rounded-2xl p-px shadow-[0_24px_80px_-20px_rgba(26,43,75,0.35)] xs:rounded-[1.75rem] sm:rounded-[2rem]">
           <div
-            className="absolute inset-0 rounded-[2rem] opacity-90"
+            className="absolute inset-0 rounded-2xl opacity-90 xs:rounded-[1.75rem] sm:rounded-[2rem]"
             style={{
               background:
                 "linear-gradient(135deg, rgba(16,185,129,0.7) 0%, rgba(26,43,75,0.4) 40%, rgba(16,185,129,0.5) 70%, rgba(100,116,139,0.3) 100%)",
             }}
           />
 
-          <div className="relative overflow-hidden rounded-[calc(2rem-1px)] bg-white">
+          <div className="relative overflow-hidden rounded-[calc(1rem-1px)] bg-white xs:rounded-[calc(1.75rem-1px)] sm:rounded-[calc(2rem-1px)]">
             {/* Ambient decoration */}
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
@@ -98,7 +98,7 @@ export function WaitlistSection({ className }: { className?: string }) {
               />
             </div>
 
-            <div className="relative grid gap-10 px-6 py-14 sm:px-10 sm:py-16 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-14 lg:px-14">
+            <div className="relative grid gap-8 px-4 py-10 xs:gap-9 xs:px-5 xs:py-12 sm:gap-10 sm:px-8 sm:py-14 md:px-10 md:py-16 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-14 lg:px-14">
               {/* Left — narrative */}
               <div className="text-center lg:text-left">
                 <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-3 py-1 text-xs font-bold uppercase tracking-wider text-accent-700">
@@ -115,10 +115,10 @@ export function WaitlistSection({ className }: { className?: string }) {
                   </div>
                 </div>
 
-                <h2 className="font-display text-3xl font-extrabold tracking-tight text-primary sm:text-4xl">
+                <h2 className="font-display text-2xl font-extrabold tracking-tight text-primary xs:text-3xl sm:text-4xl">
                   Join the waitlist
                 </h2>
-                <p className="mx-auto mt-4 max-w-md text-base text-secondary-600 lg:mx-0">
+                <p className="mx-auto mt-3 max-w-md text-sm text-secondary-600 xs:mt-4 xs:text-base lg:mx-0">
                   Receive all the latest news and updates, as well as early access to the beta.
                 </p>
 
@@ -142,16 +142,16 @@ export function WaitlistSection({ className }: { className?: string }) {
 
               {/* Right — form / states */}
               <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
-                <div className="rounded-2xl border border-secondary-100 bg-secondary-50/60 p-6 shadow-inner backdrop-blur-sm sm:p-8">
+                <div className="rounded-xl border border-secondary-100 bg-secondary-50/60 p-3.5 shadow-inner backdrop-blur-sm xs:rounded-2xl xs:p-4 sm:p-6 md:p-8">
                   {showForm && (
                     <div className="animate-in fade-in zoom-in-95 duration-400">
                       <form
                         onSubmit={handleSubmit}
-                        className="flex flex-col gap-3 sm:flex-row sm:items-start"
+                        className="flex flex-col gap-2 min-[520px]:flex-row min-[520px]:items-stretch min-[520px]:gap-2.5 sm:gap-3"
                         noValidate
                       >
-                        <div className="relative flex-1">
-                          <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-400" />
+                        <div className="relative min-w-0 flex-1">
+                          <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-400 xs:left-3.5 min-[520px]:left-4" />
                           <Input
                             type="email"
                             name="email"
@@ -164,7 +164,7 @@ export function WaitlistSection({ className }: { className?: string }) {
                             }}
                             disabled={joinWaitlist.isPending}
                             className={cn(
-                              "h-12 rounded-xl border-secondary-200 bg-white pl-11 shadow-sm",
+                              "h-11 rounded-lg border-secondary-200 bg-white pl-9 text-sm shadow-sm xs:h-11 xs:rounded-xl xs:pl-10 min-[520px]:h-12 min-[520px]:pl-11",
                               error &&
                                 "border-red-300 focus-visible:border-red-400 focus-visible:ring-red-200"
                             )}
@@ -175,8 +175,9 @@ export function WaitlistSection({ className }: { className?: string }) {
                         <Button
                           type="submit"
                           size="lg"
+                          variant="gradient"
                           isLoading={joinWaitlist.isPending}
-                          className="h-12 shrink-0 rounded-xl px-8 font-bold shadow-md"
+                          className="h-11 w-full shrink-0 rounded-lg px-5 text-sm font-bold shadow-md xs:rounded-xl min-[520px]:h-12 min-[520px]:w-auto min-[520px]:px-6 sm:px-8"
                         >
                           Join waitlist
                         </Button>

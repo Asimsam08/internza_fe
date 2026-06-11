@@ -3,7 +3,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { cn } from "@/lib/utils"
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "destructive" | "accent"
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "destructive" | "accent" | "gradient"
   size?: "sm" | "md" | "lg" | "icon"
   isLoading?: boolean
   asChild?: boolean
@@ -19,6 +19,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ghost: "hover:bg-secondary-100 text-secondary-700 hover:text-primary",
       destructive: "bg-error text-white hover:bg-error/90 active:bg-error/80 shadow-sm",
       accent: "bg-accent text-white hover:bg-accent-600 active:bg-accent-700 shadow-sm",
+      gradient:
+        "gradient-brand text-white shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-accent/25 hover:brightness-110 active:brightness-95",
     }
 
     const sizes = {
