@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useVerifyCertificate } from "@/lib/hooks/use-certificates"
-import { buildPublicVerificationUrl } from "@/lib/certificate-url"
+import { buildPublicVerificationUrl, getAppBaseUrl } from "@/lib/certificate-url"
 import {
   AlertCircle,
   CheckCircle2,
@@ -26,18 +26,19 @@ export default function PublicVerifyCertificatePage() {
   const { data, isLoading, isError, error } = useVerifyCertificate(verificationId)
 
   const verifyUrl = verificationId ? buildPublicVerificationUrl(verificationId) : ""
+  const appUrl = getAppBaseUrl()
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4">
-          <Link href="https://internza.vercel.app" className="flex items-center gap-2">
+          <Link href={appUrl} className="flex items-center gap-2">
             <InternzaLogo variant="icon" className="h-9 w-9" />
             <span className="font-semibold text-slate-900">Internza</span>
           </Link>
           <Button variant="outline" size="sm" asChild>
-            <a href="https://internza.vercel.app" target="_blank" rel="noopener noreferrer">
-              internza.vercel.app
+            <a href={appUrl} target="_blank" rel="noopener noreferrer">
+              Internza
               <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
             </a>
           </Button>
@@ -92,7 +93,7 @@ export default function PublicVerifyCertificatePage() {
                   : "This ID is invalid, revoked, or not yet issued. Check the ID on the PDF and try again."}
               </p>
               <Button variant="outline" asChild>
-                <Link href="https://internza.vercel.app">Visit Internza</Link>
+                <Link href={appUrl}>Visit Internza</Link>
               </Button>
             </CardContent>
           </Card>
