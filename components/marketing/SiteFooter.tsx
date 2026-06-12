@@ -34,7 +34,7 @@ export function SiteFooter() {
               </div>
               <div>
                 <div className="font-display text-lg font-extrabold tracking-tight text-primary">
-                  Internza
+                  Proof<span className="text-accent">Aura</span>
                 </div>
                 <div className="text-xs font-medium text-secondary-500">
                   Proof-based internships
@@ -96,7 +96,7 @@ export function SiteFooter() {
 
         <div className="relative z-10 flex flex-col items-center justify-between gap-4 border-t border-secondary-200/50 py-6 sm:flex-row">
           <p className="text-xs text-secondary-500">
-            © {new Date().getFullYear()} Internza. All rights reserved.
+            © {new Date().getFullYear()} ProofAura. All rights reserved.
           </p>
           <p className="text-xs font-semibold text-secondary-500">
             Made with <span className="text-red-500">❤️</span> in India.

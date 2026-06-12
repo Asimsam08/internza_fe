@@ -1,4 +1,4 @@
-// Types for Internza MVP
+// Types for ProofAura MVP
 // Focused on core flow: Templates → Enrollment → Tasks → Proof → Review → Certificate
 
 export type UserRole = "super_admin" | "college_admin" | "reviewer" | "student"

@@ -3,7 +3,7 @@ export function getAppBaseUrl(): string {
   const base =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.NEXT_PUBLIC_FRONTEND_URL ||
-    'https://internza.vercel.app'
+    'https://proofaura.com'
   return base.replace(/\/$/, '')
 }
 

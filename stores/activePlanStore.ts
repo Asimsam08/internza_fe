@@ -15,7 +15,7 @@ export const useActivePlanStore = create<ActivePlanState>()(
       activePlanId: null,
       setActivePlanId: (planId) => set({ activePlanId: planId }),
     }),
-    { name: "internza-active-plan-id" },
+    { name: "proofaura-active-plan-id" },
   ),
 )
 

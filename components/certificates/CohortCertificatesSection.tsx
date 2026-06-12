@@ -59,7 +59,7 @@ export function CohortCertificatesSection({
           <h3 className="font-semibold text-secondary-900">Cohort certificates</h3>
           <p className="text-sm text-secondary-600 mt-1">
             {studentsCompleted} of {studentsTotal} students completed — bulk ZIP includes PDFs with
-            your college logo, reviewer names, and Powered by internza.
+            your college logo, reviewer names, and Powered by ProofAura.
           </p>
         </div>
         <Button
@@ -86,7 +86,7 @@ export function CohortCertificatesSection({
 
       <CertificatePreviewPanel
         title="Cohort certificate sample"
-        description="College branding is primary. Reviewers and Powered by internza appear on issued PDFs."
+        description="College branding is primary. Reviewers and Powered by ProofAura appear on issued PDFs."
         previewData={{
           variant: "cohort",
           studentName: "Sample Student",
@@ -100,7 +100,7 @@ export function CohortCertificatesSection({
         }}
         previewPdfUrl={getSampleCertificatePreviewUrl("cohort", collegeId)}
         downloadPdfUrl={getSampleCertificateDownloadUrl("cohort", collegeId)}
-        downloadFilename="internza-cohort-certificate-sample.pdf"
+        downloadFilename="proofaura-cohort-certificate-sample.pdf"
         sample
       />
     </div>

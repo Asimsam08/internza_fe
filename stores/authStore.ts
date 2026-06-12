@@ -106,6 +106,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
       // Clear persisted React Query cache
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('proofaura-query-cache')
         localStorage.removeItem('internza-query-cache')
         // Force full page reload to clear all state
         window.location.href = '/login'

@@ -18,7 +18,7 @@ export default function CertificatesPage() {
 
   const handleDownload = (cert: typeof mockCertificates[0]) => {
     const certContent = `
-INTERNZA CERTIFICATE
+PROOFAURA CERTIFICATE
 
 Certificate Number: ${cert.certificateNumber}
 
@@ -36,7 +36,7 @@ Tasks completed: ${cert.tasksCompleted}/${cert.totalTasks}
 Issued on: ${new Date(cert.issuedAt).toISOString().split('T')[0]}
 Issued by: ${cert.issuedByName}
 
-Verify at: https://internza.io/verify/${cert.id}
+Verify at: https://proofaura.com/verify/${cert.id}
     `.trim()
 
     const blob = new Blob([certContent], { type: "text/plain" })

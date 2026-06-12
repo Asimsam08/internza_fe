@@ -1,8 +1,8 @@
-# Internza Frontend - Project Documentation
+# ProofAura Frontend - Project Documentation
 
 ## Project Overview
 
-**Internza** is a proof-of-work internship platform that connects students with industry-level internship opportunities through a verified, milestone-based system. Unlike traditional internship platforms, Internza requires students to submit tangible proof of work (code, documentation, analysis) at each milestone, which is then verified by industry mentors/reviewers.
+**ProofAura** is a proof-of-work internship platform that connects students with industry-level internship opportunities through a verified, milestone-based system. Unlike traditional internship platforms, ProofAura requires students to submit tangible proof of work (code, documentation, analysis) at each milestone, which is then verified by industry mentors/reviewers.
 
 ### Core Value Proposition
 - **Verified Skills**: Every internship completion is backed by verifiable proof

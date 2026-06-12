@@ -100,6 +100,7 @@ export default function LoginPage() {
 
       // Clear any stale cached data
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('proofaura-query-cache')
         localStorage.removeItem('internza-query-cache')
       }
 

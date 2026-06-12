@@ -100,7 +100,7 @@ export function CertificatePreviewCard({ data, sample = false, className }: Cert
                 />
               </div>
               <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-indigo-950 lowercase">
-                internza
+                proofaura
               </h2>
               <p className="text-sm text-slate-500 mt-1">Internship Platform</p>
             </>
@@ -166,7 +166,7 @@ export function CertificatePreviewCard({ data, sample = false, className }: Cert
                 aria-hidden
               />
               <span>
-                Powered by <span className="font-semibold text-indigo-700">internza</span>
+                Powered by <span className="font-semibold text-indigo-700">ProofAura</span>
               </span>
             </div>
           ) : (

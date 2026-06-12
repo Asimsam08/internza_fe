@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { InternzaLogo } from "@/components/brand/InternzaLogo"
+import { ProofAuraLogo } from "@/components/brand/ProofAuraLogo"
 import {
   CheckCircle,
   Briefcase,
@@ -123,9 +123,9 @@ export default function ReviewerLayout({
                   </>
                 )
               ) : sidebarCollapsed ? (
-                <InternzaLogo variant="icon" className="h-10 w-10" />
+                <ProofAuraLogo variant="icon" className="h-10 w-10" />
               ) : (
-                <InternzaLogo />
+                <ProofAuraLogo />
               )}
             </Link>
             {!sidebarCollapsed && (

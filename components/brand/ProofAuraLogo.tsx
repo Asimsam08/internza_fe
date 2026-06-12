@@ -3,15 +3,15 @@ import Image from "next/image"
 
 import { cn } from "@/lib/utils"
 
-type InternzaLogoProps = {
+type ProofAuraLogoProps = {
   variant?: "mark" | "icon"
   className?: string
 }
 
-export function InternzaLogo({ variant = "mark", className }: InternzaLogoProps) {
+export function ProofAuraLogo({ variant = "mark", className }: ProofAuraLogoProps) {
   if (variant === "icon") {
     return (
-      <span className={cn("relative inline-block h-10 w-10", className)} aria-label="Internza">
+      <span className={cn("relative inline-block h-10 w-10", className)} aria-label="ProofAura">
         <Image
           src="/icon.svg"
           alt=""
@@ -25,14 +25,13 @@ export function InternzaLogo({ variant = "mark", className }: InternzaLogoProps)
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      <InternzaLogo variant="icon" className="h-10 w-10" />
+      <ProofAuraLogo variant="icon" className="h-10 w-10" />
       <div className="leading-tight">
         <div className="font-display text-lg font-extrabold tracking-tight text-primary sm:text-xl">
-          Internza
+          Proof<span className="text-accent">Aura</span>
         </div>
         <div className="text-xs font-medium text-secondary-500 tracking-wide">Proof-based internships</div>
       </div>
     </div>
   )
 }
-

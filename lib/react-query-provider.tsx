@@ -42,7 +42,7 @@ function makeQueryClientWithPersistence() {
   if (typeof window !== "undefined") {
     const persister = createSyncStoragePersister({
       storage: window.localStorage,
-      key: "internza-query-cache",
+      key: "proofaura-query-cache",
     })
     persistQueryClient({
       queryClient: client,

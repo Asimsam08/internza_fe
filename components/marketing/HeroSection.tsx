@@ -152,7 +152,7 @@ export function HeroSection({ dashboard }: HeroSectionProps) {
           {/* Students join self-paced internship tracks, submit evidence for every task, and earn
           shareable verification. Colleges run structured cohorts — all on one platform. */}
 
-          Internza lets students complete self-paced internships, submit proof of every task, and earn shareable verification that opens doors. Colleges manage cohorts effortlessly on the same platform.
+          ProofAura lets students complete self-paced internships, submit proof of every task, and earn shareable verification that opens doors. Colleges manage cohorts effortlessly on the same platform.
         </p>
 
         <div className="mt-6 flex flex-col items-stretch justify-center gap-2.5 xs:mt-7 xs:gap-3 sm:mt-8 sm:flex-row sm:items-center">

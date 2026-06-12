@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
-import { InternzaLogo } from "@/components/brand/InternzaLogo"
+import { ProofAuraLogo } from "@/components/brand/ProofAuraLogo"
 import { cn } from "@/lib/utils"
 import { Building2, Mail } from "lucide-react"
 
@@ -19,7 +19,7 @@ export default function SuperAdminPlatformLayout({ children }: { children: React
       <div className="min-h-screen bg-secondary-50 flex">
         <aside className="w-64 border-r bg-white p-4">
           <Link href="/super-admin/colleges" className="block mb-8">
-            <InternzaLogo />
+            <ProofAuraLogo />
           </Link>
           <nav className="space-y-1">
             {nav.map((item) => (

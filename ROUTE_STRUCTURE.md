@@ -1,4 +1,4 @@
-# Production-Grade Route Structure for Internza MVP
+# Production-Grade Route Structure for ProofAura MVP
 
 ## Role-Based Navigation Architecture
 

@@ -5,7 +5,7 @@ import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { InternzaLogo } from "@/components/brand/InternzaLogo"
+import { ProofAuraLogo } from "@/components/brand/ProofAuraLogo"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CurrentWorkWidget } from "@/components/dashboard/CurrentWorkWidget"
@@ -231,7 +231,7 @@ export default function DashboardLayout({
             className={cn("flex items-center gap-2", sidebarCollapsed && "w-full justify-center")}
             aria-label="Go to dashboard"
           >
-            {sidebarCollapsed ? <InternzaLogo variant="icon" className="h-10 w-10" /> : <InternzaLogo />}
+            {sidebarCollapsed ? <ProofAuraLogo variant="icon" className="h-10 w-10" /> : <ProofAuraLogo />}
           </Link>
           <button 
             className="ml-auto lg:hidden p-2 text-secondary-600 hover:text-primary"

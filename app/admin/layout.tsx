@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAuthStore } from "@/stores/authStore"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
-import { InternzaLogo } from "@/components/brand/InternzaLogo"
+import { ProofAuraLogo } from "@/components/brand/ProofAuraLogo"
 import {
   Search,
   Settings,
@@ -77,7 +77,7 @@ export default function AdminLayout({
             className={cn("flex items-center gap-2", sidebarCollapsed && "w-full justify-center")}
             aria-label="Go to dashboard"
           >
-            {sidebarCollapsed ? <InternzaLogo variant="icon" className="h-10 w-10" /> : <InternzaLogo />}
+            {sidebarCollapsed ? <ProofAuraLogo variant="icon" className="h-10 w-10" /> : <ProofAuraLogo />}
           </Link>
           {!sidebarCollapsed && (
             <button

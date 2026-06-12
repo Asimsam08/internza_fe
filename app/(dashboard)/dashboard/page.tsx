@@ -125,7 +125,7 @@ export default function DashboardPage() {
           <div className="relative max-w-xl">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur-sm">
               <Sparkles className="h-3.5 w-3.5" />
-              Internza
+              ProofAura
             </div>
             <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Hi, {userName}! 👋</h1>
             <p className="mt-3 text-base text-white/90">

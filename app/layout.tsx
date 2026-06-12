@@ -5,7 +5,7 @@ import { ReactQueryProvider } from "@/lib/react-query-provider";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Internza - Proof-Based Internship Platform",
+  title: "ProofAura - Proof-Based Internship Platform",
   description: "Build. Prove. Get Certified. Stop sending resumes. Start sharing proof.",
   icons: [{ rel: "icon", url: "/icon.svg" }],
 };
