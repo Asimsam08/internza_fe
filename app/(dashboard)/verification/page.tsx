@@ -88,7 +88,7 @@ export default function VerificationPage() {
         <div className="space-y-6">
           <CertificatePreviewPanel
             title="Your certificate"
-            description="Internza self-paced internship — official PDF opens in a new tab"
+            description="ProofAura self-paced internship — official PDF opens in a new tab"
             previewData={{
               variant: "self-paced",
               studentName: studentDisplayName,
@@ -101,7 +101,7 @@ export default function VerificationPage() {
             }}
             previewPdfUrl={getStudentCertificatePreviewUrl()}
             downloadPdfUrl={getStudentCertificateDownloadUrl()}
-            downloadFilename={`internza-certificate-${verificationId?.slice(0, 8) ?? "issued"}.pdf`}
+            downloadFilename={`proofaura-certificate-${verificationId?.slice(0, 8) ?? "issued"}.pdf`}
             authenticated
           />
 
@@ -181,7 +181,7 @@ export default function VerificationPage() {
 
           <CertificatePreviewPanel
             title="Self-paced certificate sample"
-            description="Internza is the primary brand — no logo, wordmark only. PDF opens in a new tab."
+            description="ProofAura is the primary brand — no logo, wordmark only. PDF opens in a new tab."
             previewData={{
               variant: "self-paced",
               studentName: "Jordan Martinez",
@@ -193,7 +193,7 @@ export default function VerificationPage() {
             }}
             previewPdfUrl={getSampleCertificatePreviewUrl("self-paced")}
             downloadPdfUrl={getSampleCertificateDownloadUrl("self-paced")}
-            downloadFilename="internza-self-paced-certificate-sample.pdf"
+            downloadFilename="proofaura-self-paced-certificate-sample.pdf"
             sample
           />
         </div>

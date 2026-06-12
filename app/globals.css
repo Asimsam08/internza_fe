@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Internza Design System - Exact Colors from Screenshot */
+    /* ProofAura Design System */
     --background: 210 40% 98%; /* #F8FAFC */
     --foreground: 222 47% 11%;
     
@@ -170,7 +170,7 @@
     }
   }
 
-  .footer-watermark-inter {
+  .footer-watermark-proof {
     @apply italic;
     color: transparent;
     background: linear-gradient(
@@ -183,7 +183,7 @@
     background-clip: text;
   }
 
-  .footer-watermark-nza {
+  .footer-watermark-aura {
     @apply not-italic;
     margin-left: -0.03em;
     color: transparent;

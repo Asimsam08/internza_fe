@@ -204,7 +204,7 @@ export default function LandingPage() {
               </h2>
               <p className="mt-4 text-secondary-600">
                 Whether you&apos;re a student building your portfolio or a college scaling internship
-                programs — Internza is designed for you.
+                programs — ProofAura is designed for you.
               </p>
             </div>
           </AnimateIn>
@@ -287,9 +287,9 @@ export default function LandingPage() {
                     <p className="mt-2 flex-1 text-sm leading-relaxed text-secondary-600">
                       {spec.desc}
                     </p>
-                    <div className="mt-4 flex items-center gap-1.5 text-xs font-bold text-accent-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    {/* <div className="mt-4 flex items-center gap-1.5 text-xs font-bold text-accent-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                       Learn more <ArrowRight className="h-3 w-3" />
-                    </div>
+                    </div> */}
                   </CardContent>
                 </Card>
               </AnimateIn>

@@ -5,7 +5,7 @@ import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { InternzaLogo } from "@/components/brand/InternzaLogo"
+import { ProofAuraLogo } from "@/components/brand/ProofAuraLogo"
 import ProtectedRoute from "@/components/auth/ProtectedRoute"
 import { useAuthStore } from "@/stores/authStore"
 import { useCurrentUser } from "@/lib/hooks/use-auth"
@@ -103,7 +103,7 @@ export function CollegeAdminShell({
                 logoSrc ? (
                   <Image src={logoSrc} alt="" width={36} height={36} className="rounded-lg object-cover" />
                 ) : (
-                  <InternzaLogo variant="icon" className="h-9 w-9" />
+                  <ProofAuraLogo variant="icon" className="h-9 w-9" />
                 )
               ) : (
                 <>
@@ -178,7 +178,7 @@ export function CollegeAdminShell({
               )}
             >
               <GraduationCap className="h-3.5 w-3.5 shrink-0" />
-              {!collapsed && <span className="truncate">Powered by Internza</span>}
+              {!collapsed && <span className="truncate">Powered by ProofAura</span>}
             </p>
           </footer>
         </aside>

@@ -1,6 +1,6 @@
-# Internza - Proof-Based Internship Platform
+# ProofAura - Proof-Based Internship Platform
 
-A modern, premium frontend for Internza - a proof-based internship platform for CS/AI students.
+A modern, premium frontend for ProofAura - a proof-based internship platform for CS/AI students.
 
 ## Features
 

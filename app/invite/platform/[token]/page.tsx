@@ -80,7 +80,7 @@ export default function PlatformInviteLandingPage() {
     <section className="min-h-screen flex items-center justify-center p-4 bg-secondary-50">
       <Card className="max-w-md w-full">
         <CardHeader>
-          <CardTitle>Join Internza as a Reviewer</CardTitle>
+          <CardTitle>Join ProofAura as a Reviewer</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-secondary-600">

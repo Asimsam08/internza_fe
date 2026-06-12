@@ -6,8 +6,8 @@ export function FooterWatermark({ className }: { className?: string }) {
       className={cn("footer-watermark pointer-events-none select-none", className)}
       aria-hidden="true"
     >
-      <span className="footer-watermark-inter">Inter</span>
-      <span className="footer-watermark-nza">nza</span>
+      <span className="footer-watermark-proof">Proof</span>
+      <span className="footer-watermark-aura">Aura</span>
     </div>
   )
 }

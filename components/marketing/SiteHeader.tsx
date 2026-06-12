@@ -6,7 +6,7 @@ import { Menu, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { InternzaLogo } from "@/components/brand/InternzaLogo"
+import { ProofAuraLogo } from "@/components/brand/ProofAuraLogo"
 
 const nav = [
   { href: "#audiences", label: "Who it's for" },
@@ -27,7 +27,7 @@ export function SiteHeader({ className }: { className?: string }) {
     >
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 xs:px-4 sm:h-16 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2">
-          <InternzaLogo />
+          <ProofAuraLogo />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

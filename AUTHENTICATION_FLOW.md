@@ -1,4 +1,4 @@
-# Internza Authentication Flow Documentation
+# ProofAura Authentication Flow Documentation
 
 ## Overview
 

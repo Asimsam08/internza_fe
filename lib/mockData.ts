@@ -1,4 +1,4 @@
-// Mock Data for Internza MVP
+// Mock Data for ProofAura MVP
 import {
   User,
   ProjectTemplate,
@@ -344,7 +344,7 @@ export const mockCertificates: Certificate[] = [
     mentorName: "Dr. Sarah Chen",
     reviewerName: "Prof. Michael Ross",
     completionDate: date(-30),
-    platformName: "Internza",
+    platformName: "ProofAura",
   },
 ]
 

@@ -5,7 +5,7 @@ import { Bell, CheckCircle2, Info, Mail, Sparkles } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { InternzaLogo } from "@/components/brand/InternzaLogo"
+import { ProofAuraLogo } from "@/components/brand/ProofAuraLogo"
 import { useJoinWaitlist } from "@/lib/hooks/use-waitlist"
 import { ApiError } from "@/lib/api-client"
 import { cn } from "@/lib/utils"
@@ -110,7 +110,7 @@ export function WaitlistSection({ className }: { className?: string }) {
                   <div className="relative">
                     <div className="absolute inset-0 scale-125 rounded-full bg-accent/10 blur-xl" />
                     <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-secondary-100 bg-white shadow-sm ring-4 ring-accent/10">
-                      <InternzaLogo variant="icon" className="h-9 w-9" />
+                      <ProofAuraLogo variant="icon" className="h-9 w-9" />
                     </div>
                   </div>
                 </div>

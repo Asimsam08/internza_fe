@@ -1,4 +1,4 @@
-// Navigation items for Internza MVP
+// Navigation items for ProofAura MVP
 // Only 3 roles: super_admin, reviewer, student
 
 import { Permission, UserRole } from "@/lib/types"

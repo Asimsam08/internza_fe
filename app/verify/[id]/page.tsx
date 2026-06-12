@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { InternzaLogo } from "@/components/brand/InternzaLogo"
+import { ProofAuraLogo } from "@/components/brand/ProofAuraLogo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,12 +33,12 @@ export default function PublicVerifyCertificatePage() {
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4">
           <Link href={appUrl} className="flex items-center gap-2">
-            <InternzaLogo variant="icon" className="h-9 w-9" />
-            <span className="font-semibold text-slate-900">Internza</span>
+            <ProofAuraLogo variant="icon" className="h-9 w-9" />
+            <span className="font-semibold text-slate-900">ProofAura</span>
           </Link>
           <Button variant="outline" size="sm" asChild>
             <a href={appUrl} target="_blank" rel="noopener noreferrer">
-              Internza
+              ProofAura
               <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
             </a>
           </Button>
@@ -52,7 +52,7 @@ export default function PublicVerifyCertificatePage() {
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Certificate verification</h1>
           <p className="text-sm text-slate-600 max-w-lg mx-auto">
-            Anyone can use this page to confirm an Internza internship certificate is authentic.
+            Anyone can use this page to confirm an ProofAura internship certificate is authentic.
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export default function PublicVerifyCertificatePage() {
                   : "This ID is invalid, revoked, or not yet issued. Check the ID on the PDF and try again."}
               </p>
               <Button variant="outline" asChild>
-                <Link href={appUrl}>Visit Internza</Link>
+                <Link href={appUrl}>Visit ProofAura</Link>
               </Button>
             </CardContent>
           </Card>
@@ -200,7 +200,7 @@ export default function PublicVerifyCertificatePage() {
               {data.valid ? (
                 <p className="text-sm text-emerald-700 flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  This certificate was issued by Internza and matches our records.
+                  This certificate was issued by ProofAura and matches our records.
                 </p>
               ) : (
                 <p className="text-sm text-amber-700">

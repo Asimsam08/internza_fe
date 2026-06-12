@@ -145,7 +145,7 @@ export default function TaskRoadmapPage() {
   const { user } = useAuthStore()
   const { data: dashboard, isLoading } = useStudentDashboard()
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
-  const FILTER_STORAGE_KEY = "internza.milestones.taskStatusFilter.v1"
+  const FILTER_STORAGE_KEY = "proofaura.milestones.taskStatusFilter.v1"
   type TimelineStatus = ReturnType<typeof getTaskStatusFromTimeline>
   const allFilterStatuses: TimelineStatus[] = ['available', 'in_progress', 'submitted', 'rejected', 'approved', 'locked']
   const [statusFilter, setStatusFilter] = useState<Set<TimelineStatus>>(() => new Set(allFilterStatuses))
@@ -229,7 +229,7 @@ export default function TaskRoadmapPage() {
         <div className="bg-gradient-to-r from-primary via-primary to-accent rounded-2xl p-8 text-white">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="h-6 w-6" />
-            <span className="text-sm font-medium opacity-90">Welcome to Internza</span>
+            <span className="text-sm font-medium opacity-90">Welcome to ProofAura</span>
           </div>
           <h1 className="text-3xl font-bold mb-2">
             Hello, {userName}! 👋

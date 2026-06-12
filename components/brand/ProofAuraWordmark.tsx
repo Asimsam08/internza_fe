@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
 
-type InternzaWordmarkProps = {
+type ProofAuraWordmarkProps = {
   className?: string
   size?: "sm" | "md" | "lg" | "xl"
 }
@@ -12,7 +12,7 @@ const sizeClasses = {
   xl: "text-5xl sm:text-6xl",
 }
 
-export function InternzaWordmark({ className, size = "lg" }: InternzaWordmarkProps) {
+export function ProofAuraWordmark({ className, size = "lg" }: ProofAuraWordmarkProps) {
   return (
     <span
       className={cn(
@@ -20,10 +20,10 @@ export function InternzaWordmark({ className, size = "lg" }: InternzaWordmarkPro
         sizeClasses[size],
         className
       )}
-      aria-label="Internza"
+      aria-label="ProofAura"
     >
-      <span className="brand-wordmark-left">Inter</span>
-      <span className="brand-wordmark-right">nza</span>
+      <span className="brand-wordmark-left">Proof</span>
+      <span className="brand-wordmark-right">Aura</span>
     </span>
   )
 }

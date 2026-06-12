@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { Eye, EyeOff, ArrowRight, Mail, User, Building2, GraduationCap, CheckCircle } from "lucide-react"
 import { useAuthStore } from "@/stores/authStore"
 import { api } from "@/lib/api-client"
-import { InternzaLogo } from "@/components/brand/InternzaLogo"
+import { ProofAuraLogo } from "@/components/brand/ProofAuraLogo"
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -119,7 +119,7 @@ export default function SignupPage() {
         <div className="hidden flex-col justify-between bg-primary p-12 text-white lg:flex">
           <div>
             <Link href="/" className="flex items-center">
-              <InternzaLogo variant="icon" className="h-9 w-9" />
+              <ProofAuraLogo variant="icon" className="h-9 w-9" />
             </Link>
           </div>
           
