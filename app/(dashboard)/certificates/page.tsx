@@ -36,7 +36,7 @@ Tasks completed: ${cert.tasksCompleted}/${cert.totalTasks}
 Issued on: ${new Date(cert.issuedAt).toISOString().split('T')[0]}
 Issued by: ${cert.issuedByName}
 
-Verify at: https://proofaura.com/verify/${cert.id}
+Verify at: https://www.proofaura.com/verify/${cert.id}
     `.trim()
 
     const blob = new Blob([certContent], { type: "text/plain" })
